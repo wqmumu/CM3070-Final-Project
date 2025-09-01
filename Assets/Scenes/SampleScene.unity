@@ -1176,7 +1176,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   troopPrefab: {fileID: 5665037071966343670, guid: f68eb3ca9ea231549b15099de022d829, type: 3}
   spawnPoint: {fileID: 2082894629}
-  startingTroops: 50
+  startingTroops: 1
   maxTroops: 100
 --- !u!1 &1721458634
 GameObject:
