@@ -1,0 +1,14 @@
+fileFormatVersion: 2
+guid: 388eae2e504c304469a574fb61c4bef6
+MonoImporter:
+  externalObjects: {}
+  serializedVersion: 2
+  defaultReferences:
+  - meshRenderer: {instanceID: 0}
+  - anim: {instanceID: 0}
+  - hitEffectPrefab: {fileID: 6835584617760922346, guid: 342e7206afd138b4e82f3b6227e82c2e, type: 3}
+  executionOrder: 0
+  icon: {instanceID: 0}
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
