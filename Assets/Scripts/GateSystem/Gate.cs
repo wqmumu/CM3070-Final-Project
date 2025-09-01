@@ -1,5 +1,6 @@
 ﻿using UnityEngine;
 using TMPro;
+using System.Collections;
 
 public enum GateType { Add, Subtract, Multiply, Divide }
 
@@ -12,66 +13,63 @@ public class Gate : MonoBehaviour
 
     [Header("Visual Feedback")]
     public GameObject gateHitEffect;
+    public Material positiveMaterial; // Blue for Add/Multiply
+    public Material negativeMaterial; // Red for Subtract/Divide
 
-    [Header("Movement Settings")]
-    public bool shouldMove = false;
-    public float moveSpeed = 2f;
+    [Header("References")]
+    public MeshRenderer bannerRenderer; // assign Banner MeshRenderer in Inspector
+    public Transform popTarget;         // usually Banner transform (optional; auto-filled)
 
-    private bool triggered = false;
-    private bool movingRight = true;
+    [Header("Pop Animation")]
+    [SerializeField] float popScale = 1.15f;   // peak scale relative to original
+    [SerializeField] float popDuration = 0.12f; // half-cycle (up or down)
 
-    private void Start()
+    bool triggered = false;
+    Coroutine popRoutine;
+    Vector3 originalScale;   // cached once and reused, prevents scale creep
+    bool scaleCached = false;
+
+    void Start()
     {
+        if (popTarget == null && bannerRenderer != null)
+            popTarget = bannerRenderer.transform;
+
+        // Cache original scale once
+        if (popTarget != null)
+        {
+            originalScale = popTarget.localScale;
+            scaleCached = true;
+        }
+
         UpdateLabel();
     }
 
-    private void Update()
-    {
-        if (!shouldMove) return;
-
-        float moveStep = moveSpeed * Time.deltaTime;
-        Vector3 direction = movingRight ? Vector3.right : Vector3.left;
-
-        transform.Translate(direction * moveStep);
-    }
-
-    private void UpdateLabel()
+    void UpdateLabel()
     {
         switch (type)
         {
-            case GateType.Add:
-                label.text = "+" + value;
-                break;
-            case GateType.Subtract:
-                label.text = "-" + value;
-                break;
-            case GateType.Multiply:
-                label.text = "x" + value;
-                break;
-            case GateType.Divide:
-                label.text = "/" + value;
-                break;
+            case GateType.Add: label.text = "+" + value; SetBannerMaterial(positiveMaterial); break;
+            case GateType.Subtract: label.text = "-" + value; SetBannerMaterial(negativeMaterial); break;
+            case GateType.Multiply: label.text = "x" + value; SetBannerMaterial(positiveMaterial); break;
+            case GateType.Divide: label.text = "/" + value; SetBannerMaterial(negativeMaterial); break;
         }
     }
 
-    // ✅ Flip direction when hitting a wall
-    private void OnCollisionEnter(Collision collision)
+    void SetBannerMaterial(Material mat)
     {
-        if (collision.gameObject.CompareTag("Wall"))
-        {
-            movingRight = !movingRight;
-        }
+        if (bannerRenderer != null && mat != null) bannerRenderer.material = mat;
     }
 
     public void OnBulletHit(Vector3 hitPosition)
     {
         if (triggered) return;
 
+        // value/type changes
         if (type == GateType.Add || type == GateType.Multiply)
         {
             value++;
         }
-        else if (type == GateType.Subtract || type == GateType.Divide)
+        else // Subtract/Divide
         {
             value--;
             if (value <= 0)
@@ -84,12 +82,43 @@ public class Gate : MonoBehaviour
         UpdateLabel();
 
         if (gateHitEffect != null)
-        {
             Instantiate(gateHitEffect, hitPosition, Quaternion.identity);
+
+        // POP (always from originalScale)
+        if (popTarget != null && scaleCached)
+        {
+            if (popRoutine != null) StopCoroutine(popRoutine);
+            popTarget.localScale = originalScale; // reset before replay -> no accumulation
+            popRoutine = StartCoroutine(PopOnce());
         }
     }
 
-    private void OnTriggerEnter(Collider other)
+    IEnumerator PopOnce()
+    {
+        // Up
+        float t = 0f;
+        Vector3 peak = originalScale * popScale;
+        while (t < popDuration)
+        {
+            t += Time.deltaTime;
+            popTarget.localScale = Vector3.Lerp(originalScale, peak, t / popDuration);
+            yield return null;
+        }
+
+        // Down
+        t = 0f;
+        while (t < popDuration)
+        {
+            t += Time.deltaTime;
+            popTarget.localScale = Vector3.Lerp(peak, originalScale, t / popDuration);
+            yield return null;
+        }
+
+        popTarget.localScale = originalScale;
+        popRoutine = null;
+    }
+
+    void OnTriggerEnter(Collider other)
     {
         if (triggered || !other.CompareTag("Player")) return;
 
@@ -98,21 +127,12 @@ public class Gate : MonoBehaviour
         {
             switch (type)
             {
-                case GateType.Add:
-                    manager.AddTroops(value);
-                    break;
-                case GateType.Subtract:
-                    manager.RemoveTroops(value);
-                    break;
-                case GateType.Multiply:
-                    manager.MultiplyTroops(value);
-                    break;
-                case GateType.Divide:
-                    manager.DivideTroops(value);
-                    break;
+                case GateType.Add: manager.AddTroops(value); break;
+                case GateType.Subtract: manager.RemoveTroops(value); break;
+                case GateType.Multiply: manager.MultiplyTroops(value); break;
+                case GateType.Divide: manager.DivideTroops(value); break;
             }
         }
-
         triggered = true;
     }
 }

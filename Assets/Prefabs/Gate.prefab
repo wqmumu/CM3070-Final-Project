@@ -210,8 +210,14 @@ MonoBehaviour:
   value: 10
   label: {fileID: 6092616792275452621}
   gateHitEffect: {fileID: 6835584617760922346, guid: 342e7206afd138b4e82f3b6227e82c2e, type: 3}
+  positiveMaterial: {fileID: 2100000, guid: 6a5c853ed1e99ae45a7e7b81f93d04b4, type: 2}
+  negativeMaterial: {fileID: 2100000, guid: f44ef59d5368c1540854aedeed485aa7, type: 2}
+  bannerRenderer: {fileID: 4930379815623598370}
+  popTarget: {fileID: 4132015268824847654}
   shouldMove: 0
   moveSpeed: 5
+  popScale: 1.15
+  popDuration: 0.12
 --- !u!1 &3897157344728458189
 GameObject:
   m_ObjectHideFlags: 0
