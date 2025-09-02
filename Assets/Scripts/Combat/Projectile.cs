@@ -24,6 +24,23 @@ public class Projectile : MonoBehaviour
     {
         Vector3 hitPoint = transform.position; // Approximate hit point
 
+        // If in combat: bullets ONLY hit enemies
+        if (TroopManager.CombatEngaged)
+        {
+            if (other.CompareTag("Enemy"))
+            {
+                EnemyBase enemy = other.GetComponent<EnemyBase>();
+                if (enemy != null)
+                {
+                    enemy.ShowHitEffectAt(hitPoint);
+                    enemy.TakeDamage(damage);
+                }
+                Destroy(gameObject);
+            }
+            return; // skip all else
+        }
+
+        // Normal mode: bullets hit both gates and enemies
         if (other.CompareTag("Gate"))
         {
             Gate gate = other.GetComponent<Gate>();
@@ -36,9 +53,10 @@ public class Projectile : MonoBehaviour
         {
             EnemyBase enemy = other.GetComponent<EnemyBase>();
             if (enemy != null)
+            {
                 enemy.ShowHitEffectAt(hitPoint);
-            enemy.TakeDamage(damage);
-
+                enemy.TakeDamage(damage);
+            }
             Destroy(gameObject);
         }
     }
