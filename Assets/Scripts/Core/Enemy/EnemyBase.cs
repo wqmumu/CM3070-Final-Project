@@ -15,6 +15,11 @@ public abstract class EnemyBase : MonoBehaviour
 
     [Header("Chase Settings")]
     public float chaseRange = 50f;
+    [Tooltip("Chase speed while pursuing the troop")]
+    public float chaseSpeed = 3f;
+    [Tooltip("Stop slightly inside attackRange so hits connect reliably")]
+    public float stopBuffer = 0.25f; // stopDistance = attackRange - stopBuffer
+
     protected Transform targetTroop;
     protected bool shouldChase = false;
 
@@ -30,8 +35,8 @@ public abstract class EnemyBase : MonoBehaviour
     [Header("Hit Effect")]
     [SerializeField] private GameObject hitEffectPrefab;
 
-    // --- New: leader awareness
     protected TroopManager manager;
+    public bool IsAlive => !isDead;
 
     protected virtual void Awake()
     {
@@ -65,13 +70,11 @@ public abstract class EnemyBase : MonoBehaviour
     {
         if (isDead) return;
 
-        // Ensure target is valid or reacquire
         if (TargetInvalid())
         {
             AcquireTarget();
             if (TargetInvalid())
             {
-                // No valid target -> patrol only
                 shouldChase = false;
                 Patrol();
                 return;
@@ -81,14 +84,11 @@ public abstract class EnemyBase : MonoBehaviour
         if (!shouldChase && targetTroop != null)
         {
             float distance = Vector3.Distance(transform.position, targetTroop.position);
-            if (distance < chaseRange)
-                shouldChase = true;
+            if (distance < chaseRange) shouldChase = true;
         }
 
-        if (shouldChase)
-            Chase();
-        else
-            Patrol();
+        if (shouldChase) Chase();
+        else Patrol();
     }
 
     // ----- Movement -----
@@ -117,35 +117,51 @@ public abstract class EnemyBase : MonoBehaviour
         targetPos = new Vector3(newX, transform.position.y, transform.position.z);
     }
 
+    // Resolve each enemy's attackRange without requiring overrides
+    protected float ResolveAttackRange()
+    {
+        var n = GetComponent<NormalEnemy>();
+        if (n != null) return n.attackRange;
+
+        var b = GetComponent<BossEnemy>();
+        if (b != null) return b.attackRange;
+
+        return 1.5f; // default
+    }
+
     protected virtual void Chase()
     {
-        float chaseSpeed = 3f;
-
         if (TargetInvalid()) return;
 
-        if (anim != null) anim.SetBool("Walking", true);
+        float distance = Vector3.Distance(transform.position, targetTroop.position);
 
-        Vector3 dir = (targetTroop.position - transform.position).normalized;
-        transform.position += new Vector3(dir.x, 0f, dir.z) * chaseSpeed * Time.deltaTime;
+        float attackRange = ResolveAttackRange();
+        float stopDistance = Mathf.Max(0.05f, attackRange - stopBuffer);
+
+        bool shouldAdvance = distance > stopDistance;
+
+        if (anim != null) anim.SetBool("Walking", shouldAdvance);
+
+        if (shouldAdvance)
+        {
+            Vector3 dir = (targetTroop.position - transform.position).normalized;
+            transform.position += new Vector3(dir.x, 0f, dir.z) * chaseSpeed * Time.deltaTime;
+        }
 
         Vector3 lookDir = targetTroop.position - transform.position;
         lookDir.y = 0f;
-        if (lookDir != Vector3.zero)
+        if (lookDir.sqrMagnitude > 0.001f)
             transform.rotation = Quaternion.Slerp(transform.rotation, Quaternion.LookRotation(lookDir), Time.deltaTime * 5f);
     }
 
     // ----- Target management -----
 
-    void HandleLeaderChanged(Transform t)
-    {
-        targetTroop = t; // switch immediately to the new leader (can be null)
-    }
+    void HandleLeaderChanged(Transform t) { targetTroop = t; }
 
     protected void AcquireTarget()
     {
         targetTroop = manager ? manager.GetLeadTroop() : null;
 
-        // Fallback: closest alive troop if leader is null
         if (targetTroop == null)
         {
             GameObject[] troops = GameObject.FindGameObjectsWithTag("Player");
@@ -224,6 +240,9 @@ public abstract class EnemyBase : MonoBehaviour
         }
 
         shouldChase = false;
+
+        foreach (var col in GetComponentsInChildren<Collider>()) col.enabled = false;
+
         this.enabled = false;
         Destroy(gameObject, 3f);
     }

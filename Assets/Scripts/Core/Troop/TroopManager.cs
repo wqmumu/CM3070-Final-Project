@@ -15,8 +15,21 @@ public class TroopManager : MonoBehaviour
 
     private Transform leader;
 
-    // 🔔 Enemies subscribe to this to update their target when leader changes
+    // Enemies listen for leader changes
     public static event Action<Transform> OnLeaderChanged;
+
+    // Troops listen to pause/resume during combat
+    public static event Action<bool> OnCombatStateChanged;
+
+    [Header("Combat Engage Settings")]
+    [Tooltip("How far ahead of the leader to scan for enemies")]
+    [SerializeField] private float engageRadius = 7f;
+    [Tooltip("Small bias so 'ahead' feels in front of the leader along +Z")]
+    [SerializeField] private float aheadBiasZ = 0.5f;
+    [Tooltip("Optional: restrict scan to your Enemy layer")]
+    [SerializeField] private LayerMask enemyMask = 0;
+
+    private bool combatEngaged = false;
 
     void Start()
     {
@@ -25,6 +38,11 @@ public class TroopManager : MonoBehaviour
 
         int extra = Mathf.Clamp(startingTroops - 1, 0, maxTroops);
         SpawnTroops(extra);
+    }
+
+    void Update()
+    {
+        ScanForEngagement();
     }
 
     void InitPool(int size)
@@ -48,7 +66,6 @@ public class TroopManager : MonoBehaviour
         activeTroops.Add(firstTroop);
 
         firstTroop.GetComponent<TroopMovement>()?.SetAsLeader(true);
-
         SetLeader(firstTroop.transform);
 
         StartCoroutine(FlashTroop(firstTroop));
@@ -142,7 +159,6 @@ public class TroopManager : MonoBehaviour
 
         activeTroops.Remove(troop);
 
-        // If the removed one WAS the leader, clear it; we'll pick a new one below.
         if (leader == troop.transform)
             SetLeader(null);
 
@@ -169,7 +185,6 @@ public class TroopManager : MonoBehaviour
         if (leader == newLeader) return;
         leader = newLeader;
 
-        // update camera if you handle it here
         var camFollow = Camera.main ? Camera.main.GetComponent<CameraFollow>() : null;
         if (camFollow)
         {
@@ -202,7 +217,7 @@ public class TroopManager : MonoBehaviour
 
     Vector3 GetOffset(int index)
     {
-        // Vogel spiral (elliptical) – same as your current formation
+        // Vogel spiral (elliptical)
         float angleIncrement = 137.5f;
         float a = 0.5f;
         float b = 0.25f;
@@ -225,12 +240,56 @@ public class TroopManager : MonoBehaviour
         troop.transform.localScale = original;
     }
 
-    // Optional: expose offsets if something else needs them
+    // --- Combat scanner: enemies ahead? then pause; else resume --------------
+
+    void ScanForEngagement()
+    {
+        EnsureLeaderIsValid();
+        if (leader == null)
+        {
+            if (combatEngaged)
+            {
+                combatEngaged = false;
+                OnCombatStateChanged?.Invoke(false);
+            }
+            return;
+        }
+
+        Vector3 center = leader.position + new Vector3(0f, 0f, aheadBiasZ);
+        Collider[] hits = (enemyMask.value == 0)
+            ? Physics.OverlapSphere(center, engageRadius)
+            : Physics.OverlapSphere(center, engageRadius, enemyMask);
+
+        bool anyAhead = false;
+        if (hits != null && hits.Length > 0)
+        {
+            for (int i = 0; i < hits.Length; i++)
+            {
+                var eb = hits[i].GetComponentInParent<EnemyBase>();
+                if (!eb || !eb.IsAlive || !hits[i].gameObject.activeInHierarchy) continue; // ignore dead
+
+                if (eb.transform.position.z >= leader.position.z)
+                {
+                    anyAhead = true;
+                    break;
+                }
+            }
+        }
+
+        if (anyAhead != combatEngaged)
+        {
+            combatEngaged = anyAhead;
+            OnCombatStateChanged?.Invoke(combatEngaged);
+        }
+    }
+
     public List<Vector3> GetOffsets()
     {
         var offsets = new List<Vector3>(activeTroops.Count);
         for (int i = 0; i < activeTroops.Count; i++)
+        {
             offsets.Add(GetOffset(i));
+        }
         return offsets;
     }
 }
