@@ -1119,15 +1119,21 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 3f470a373d14e4b4cbd5062212c0451f, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  leftWall: {fileID: 20885879}
+  rightWall: {fileID: 2113570149}
   gatePrefab: {fileID: 1452082699880983240, guid: e627a1b058512bf498a96424cdb23238, type: 3}
   zombiePrefab: {fileID: 4991643462049323743, guid: 081aa41bb7386244fa5a29308c5fceb9, type: 3}
   bossPrefab: {fileID: 2820884910277170662, guid: 358f94c01ce12fa429a4a5e528e785b6, type: 3}
   gateCount: 4
   spacingZ: 50
   gateOffsetZ: 20
-  maxZombiesPerGate: 50
+  centerGap: 1
+  sideMargin: 1.2
+  gateValueRange: {x: 1, y: 6}
+  maxZombiesPerPair: 50
   enemySpawnOffsetZ: 30
   enemySpacingX: 5
+  enemyFootOffset: 1.6
 --- !u!1 &1470538228
 GameObject:
   m_ObjectHideFlags: 0
@@ -1281,7 +1287,7 @@ Transform:
   m_GameObject: {fileID: 1721458634}
   serializedVersion: 2
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 9}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 3, y: 1, z: 999}
   m_ConstrainProportionsScale: 0
   m_Children: []

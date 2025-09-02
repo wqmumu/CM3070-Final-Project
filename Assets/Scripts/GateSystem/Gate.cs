@@ -15,18 +15,23 @@ public class Gate : MonoBehaviour
     public GameObject gateHitEffect;
     public Material positiveMaterial; // Blue for Add/Multiply
     public Material negativeMaterial; // Red for Subtract/Divide
+    public Material disabledMaterial; // Optional: assign to visually gray-out when disabled
 
     [Header("References")]
     public MeshRenderer bannerRenderer; // assign Banner MeshRenderer in Inspector
     public Transform popTarget;         // usually Banner transform (optional; auto-filled)
 
     [Header("Pop Animation")]
-    [SerializeField] float popScale = 1.15f;   // peak scale relative to original
-    [SerializeField] float popDuration = 0.12f; // half-cycle (up or down)
+    [SerializeField] float popScale = 1.15f;
+    [SerializeField] float popDuration = 0.12f;
+
+    // sibling link so only ONE gate in the pair can trigger
+    private Gate siblingGate;
 
     bool triggered = false;
+    bool disabledGate = false;
     Coroutine popRoutine;
-    Vector3 originalScale;   // cached once and reused, prevents scale creep
+    Vector3 originalScale;
     bool scaleCached = false;
 
     void Start()
@@ -34,7 +39,6 @@ public class Gate : MonoBehaviour
         if (popTarget == null && bannerRenderer != null)
             popTarget = bannerRenderer.transform;
 
-        // Cache original scale once
         if (popTarget != null)
         {
             originalScale = popTarget.localScale;
@@ -44,8 +48,29 @@ public class Gate : MonoBehaviour
         UpdateLabel();
     }
 
+    // Link two gates as siblings (called by LevelGenerator after spawn)
+    public void LinkSibling(Gate sibling)
+    {
+        siblingGate = sibling;
+    }
+
+    // External/config helper
+    public void Configure(GateType newType, int newValue)
+    {
+        type = newType;
+        value = Mathf.Max(1, newValue); // keep it sane
+        UpdateLabel();
+    }
+
     void UpdateLabel()
     {
+        if (disabledGate)
+        {
+            if (bannerRenderer != null && disabledMaterial != null)
+                bannerRenderer.material = disabledMaterial;
+            return;
+        }
+
         switch (type)
         {
             case GateType.Add: label.text = "+" + value; SetBannerMaterial(positiveMaterial); break;
@@ -62,14 +87,10 @@ public class Gate : MonoBehaviour
 
     public void OnBulletHit(Vector3 hitPosition)
     {
-        if (triggered) return;
+        if (triggered || disabledGate) return;
 
-        // value/type changes
-        if (type == GateType.Add || type == GateType.Multiply)
-        {
-            value++;
-        }
-        else // Subtract/Divide
+        if (type == GateType.Add || type == GateType.Multiply) value++;
+        else
         {
             value--;
             if (value <= 0)
@@ -84,18 +105,16 @@ public class Gate : MonoBehaviour
         if (gateHitEffect != null)
             Instantiate(gateHitEffect, hitPosition, Quaternion.identity);
 
-        // POP (always from originalScale)
         if (popTarget != null && scaleCached)
         {
             if (popRoutine != null) StopCoroutine(popRoutine);
-            popTarget.localScale = originalScale; // reset before replay -> no accumulation
+            popTarget.localScale = originalScale;
             popRoutine = StartCoroutine(PopOnce());
         }
     }
 
     IEnumerator PopOnce()
     {
-        // Up
         float t = 0f;
         Vector3 peak = originalScale * popScale;
         while (t < popDuration)
@@ -105,7 +124,6 @@ public class Gate : MonoBehaviour
             yield return null;
         }
 
-        // Down
         t = 0f;
         while (t < popDuration)
         {
@@ -120,8 +138,12 @@ public class Gate : MonoBehaviour
 
     void OnTriggerEnter(Collider other)
     {
-        if (triggered || !other.CompareTag("Player")) return;
+        if (triggered || disabledGate || !other.CompareTag("Player")) return;
 
+        // Immediately block re-entry while we process
+        triggered = true;
+
+        // Apply effect
         TroopManager manager = FindFirstObjectByType<TroopManager>();
         if (manager != null)
         {
@@ -133,6 +155,27 @@ public class Gate : MonoBehaviour
                 case GateType.Divide: manager.DivideTroops(value); break;
             }
         }
-        triggered = true;
+
+        // Disable sibling so only ONE gate of the pair can ever activate
+        if (siblingGate != null)
+            siblingGate.Deactivate();
+
+        // (Optional) also disable self collider to avoid duplicate triggers on the same pass
+        DisableColliderOnly();
+    }
+
+    public void Deactivate()
+    {
+        disabledGate = true;
+
+        // Turn off collider & visuals (keep object for layout)
+        DisableColliderOnly();
+        UpdateLabel(); // refresh to disabled material if assigned
+    }
+
+    void DisableColliderOnly()
+    {
+        foreach (var col in GetComponentsInChildren<Collider>(true))
+            col.enabled = false;
     }
 }
