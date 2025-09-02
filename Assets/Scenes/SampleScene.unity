@@ -1184,6 +1184,11 @@ MonoBehaviour:
   spawnPoint: {fileID: 2082894629}
   startingTroops: 1
   maxTroops: 100
+  engageRadius: 7
+  aheadBiasZ: 5
+  enemyMask:
+    serializedVersion: 2
+    m_Bits: 8
 --- !u!1 &1721458634
 GameObject:
   m_ObjectHideFlags: 0
