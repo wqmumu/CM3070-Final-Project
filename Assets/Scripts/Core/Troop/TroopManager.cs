@@ -29,7 +29,7 @@ public class TroopManager : MonoBehaviour
     [Tooltip("Optional: restrict scan to your Enemy layer")]
     [SerializeField] private LayerMask enemyMask = 0;
 
-    private bool combatEngaged = false;
+    public static bool CombatEngaged { get; private set; }
 
     void Start()
     {
@@ -247,9 +247,9 @@ public class TroopManager : MonoBehaviour
         EnsureLeaderIsValid();
         if (leader == null)
         {
-            if (combatEngaged)
+            if (CombatEngaged)
             {
-                combatEngaged = false;
+                CombatEngaged = false;
                 OnCombatStateChanged?.Invoke(false);
             }
             return;
@@ -266,7 +266,7 @@ public class TroopManager : MonoBehaviour
             for (int i = 0; i < hits.Length; i++)
             {
                 var eb = hits[i].GetComponentInParent<EnemyBase>();
-                if (!eb || !eb.IsAlive || !hits[i].gameObject.activeInHierarchy) continue; // ignore dead
+                if (!eb || !eb.IsAlive || !hits[i].gameObject.activeInHierarchy) continue;
 
                 if (eb.transform.position.z >= leader.position.z)
                 {
@@ -276,10 +276,10 @@ public class TroopManager : MonoBehaviour
             }
         }
 
-        if (anyAhead != combatEngaged)
+        if (anyAhead != CombatEngaged)
         {
-            combatEngaged = anyAhead;
-            OnCombatStateChanged?.Invoke(combatEngaged);
+            CombatEngaged = anyAhead;
+            OnCombatStateChanged?.Invoke(CombatEngaged);
         }
     }
 
