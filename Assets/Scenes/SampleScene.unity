@@ -1135,7 +1135,7 @@ MonoBehaviour:
   enemySpacingX: 1
   enemyFootOffset: 1.6
   zombiesPerTenTroops: 5
-  zombiesPerGatePassed: 2
+  zombiesPerGatePassed: 3
   lowTroopMin: 1
   highTroopMax: 100
   subtractAtLow: {x: 1, y: 3}

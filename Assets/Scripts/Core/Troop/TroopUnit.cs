@@ -8,13 +8,8 @@ public class TroopUnit : MonoBehaviour
     [Header("References")]
     [SerializeField] private Animator animator;
 
-    [Header("Disable while dying (optional)")]
-    [SerializeField] private Collider[] collidersToDisable;
-    [SerializeField] private MonoBehaviour[] scriptsToDisable; // e.g., forward mover, shake, etc.
-
-    // Animator parameters / state names
-    private const string DeathTrigger = "Dead";   // Animator Trigger
-    private const string DeathState = "Death";  // State name of death clip
+    private const string DeathTrigger = "Dead";
+    private const string DeathState = "Death";
 
     public bool IsDying { get; private set; }
 
@@ -25,18 +20,16 @@ public class TroopUnit : MonoBehaviour
         if (!animator) animator = GetComponentInChildren<Animator>();
     }
 
-    void OnEnable() // reset for pooled reuse
+    void OnEnable()
     {
         IsDying = false;
 
-        if (collidersToDisable != null)
-            foreach (var c in collidersToDisable) if (c) c.enabled = true;
-
-        if (scriptsToDisable != null)
-            foreach (var s in scriptsToDisable) if (s) s.enabled = true;
+        // re-enable shooter when reused
+        var shooter = GetComponent<TroopShooter>();
+        if (shooter) shooter.enabled = true;
 
         var rb = GetComponent<Rigidbody>();
-        if (rb) rb.isKinematic = true; // back to normal while alive
+        if (rb) rb.isKinematic = true;
 
         if (animator)
         {
@@ -45,10 +38,6 @@ public class TroopUnit : MonoBehaviour
         }
     }
 
-    /// <summary>
-    /// Starts the death sequence and calls onComplete when the animation finishes.
-    /// The corpse stays at the death spot (no more formation/follow updates).
-    /// </summary>
     public void PlayDeath(Action onComplete)
     {
         if (!gameObject.activeInHierarchy)
@@ -65,10 +54,8 @@ public class TroopUnit : MonoBehaviour
     {
         IsDying = true;
 
-        // Hard stop: detach from any parent so formation roots can't drag us around
         transform.SetParent(null, true);
 
-        // Kill all motion systems tied to this unit
         var agent = GetComponent<NavMeshAgent>();
         if (agent)
         {
@@ -76,10 +63,14 @@ public class TroopUnit : MonoBehaviour
             agent.enabled = false;
         }
 
-        if (scriptsToDisable != null)
-            foreach (var s in scriptsToDisable) if (s) s.enabled = false;
+        // 🔒 stop shooter
+        var shooter = GetComponent<TroopShooter>();
+        if (shooter)
+        {
+            shooter.OnOwnerDied();
+            shooter.enabled = false;
+        }
 
-        // Let physics keep the body grounded exactly where it died (optional)
         var rb = GetComponent<Rigidbody>();
         if (rb)
         {
@@ -88,21 +79,14 @@ public class TroopUnit : MonoBehaviour
             rb.angularVelocity = Vector3.zero;
         }
 
-        // Optional: stop interacting while dying
-        if (collidersToDisable != null)
-            foreach (var c in collidersToDisable) if (c) c.enabled = false;
-
-        // Play the death animation
         if (animator) animator.SetTrigger(DeathTrigger);
 
-        // Wait until we're in the death state, then until it��s nearly finished
         if (animator)
         {
             yield return new WaitUntil(() => animator.GetCurrentAnimatorStateInfo(0).IsName(DeathState));
             yield return new WaitUntil(() => animator.GetCurrentAnimatorStateInfo(0).normalizedTime >= 0.99f);
         }
 
-        // Clean animator so pooled reuse starts clean
         if (animator) { animator.Rebind(); animator.Update(0f); }
 
         _onDeathComplete?.Invoke();
