@@ -8,10 +8,12 @@ public class TroopMovement : MonoBehaviour
     private Camera mainCamera;
     private bool isLeader = false;
     private bool _paused = false;
+    private TroopUnit unit;  // <-- cache
 
     public void SetAsLeader(bool status) { isLeader = status; }
     public void SetMovementPaused(bool paused) { _paused = paused; }
 
+    void Awake() { unit = GetComponent<TroopUnit>(); }
     void OnEnable() { TroopManager.OnCombatStateChanged += HandleCombatState; }
     void OnDisable() { TroopManager.OnCombatStateChanged -= HandleCombatState; }
     void HandleCombatState(bool engaged) { _paused = engaged; }
@@ -20,7 +22,10 @@ public class TroopMovement : MonoBehaviour
 
     void Update()
     {
-        // always allow lateral drag for the leader
+        // if dying, do nothing at all
+        if (unit != null && unit.IsDying) return;
+
+        // leader can still be dragged left/right
         if (isLeader) HandleLateralInput();
 
         // pause only forward motion

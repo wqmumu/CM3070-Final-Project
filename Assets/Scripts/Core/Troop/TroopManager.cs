@@ -22,11 +22,8 @@ public class TroopManager : MonoBehaviour
     public static event Action<bool> OnCombatStateChanged;
 
     [Header("Combat Engage Settings")]
-    [Tooltip("How far ahead of the leader to scan for enemies")]
     [SerializeField] private float engageRadius = 7f;
-    [Tooltip("Small bias so 'ahead' feels in front of the leader along +Z")]
     [SerializeField] private float aheadBiasZ = 0.5f;
-    [Tooltip("Optional: restrict scan to your Enemy layer")]
     [SerializeField] private LayerMask enemyMask = 0;
 
     public static bool CombatEngaged { get; private set; }
@@ -157,6 +154,7 @@ public class TroopManager : MonoBehaviour
     {
         if (!troop) return;
 
+        // Remove from active list BEFORE playing death so formation stops using it
         activeTroops.Remove(troop);
 
         if (leader == troop.transform)
@@ -167,6 +165,7 @@ public class TroopManager : MonoBehaviour
         {
             unit.PlayDeath(() =>
             {
+                // After death anim completes, return to pool
                 troop.SetActive(false);
                 troopPool.Enqueue(troop);
             });
@@ -206,7 +205,7 @@ public class TroopManager : MonoBehaviour
             if (!go || !go.activeInHierarchy) continue;
 
             var u = go.GetComponent<TroopUnit>();
-            if (u != null && u.IsDying) continue;
+            if (u != null && u.IsDying) continue; // never pick a dying unit as leader
 
             next = go.transform;
             break;
