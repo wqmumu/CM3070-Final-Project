@@ -233,9 +233,9 @@ public class LevelGenerator : MonoBehaviour
 
         if (pairIndex < 2)
         {
-            // Early pairs exclude ONLY (−,÷) and (×,÷)
             allowed.Remove((GateType.Subtract, GateType.Divide)); // (−,÷)
             allowed.Remove((GateType.Multiply, GateType.Divide)); // (×,÷)
+            allowed.Remove((GateType.Subtract, GateType.Multiply)); // (−,x)
         }
 
         int idx = Random.Range(0, allowed.Count);
