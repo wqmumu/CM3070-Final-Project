@@ -15,6 +15,11 @@ public class LevelGenerator : MonoBehaviour
     public GameObject zombiePrefab;
     public GameObject bossPrefab;
 
+    [Header("Finish")]
+    public GameObject finishGatePrefab;
+    [Tooltip("Distance after the last enemy/boss to place the finish trigger.")]
+    public float finishOffsetZ = 20f;
+
     [Header("Gate Pair Layout")]
     public int gateCount = 4;          // number of PAIRS
     public float spacingZ = 50f;       // distance between pairs
@@ -189,7 +194,15 @@ public class LevelGenerator : MonoBehaviour
 
         if (pairIndex == gateCount - 1 && bossPrefab != null)
         {
+            // Final pair: spawn boss then a finish trigger ahead
             Instantiate(bossPrefab, new Vector3(0f, enemyFootOffset, spawnZ), Quaternion.identity);
+
+            if (finishGatePrefab != null)
+            {
+                float finishZ = spawnZ + finishOffsetZ;
+                Vector3 pos = new Vector3(0f, 1.5f, finishZ);
+                Instantiate(finishGatePrefab, pos, Quaternion.identity);
+            }
         }
         else
         {
@@ -205,7 +218,7 @@ public class LevelGenerator : MonoBehaviour
     // ----------------------------------------------------------------------
     // Pair picking logic:
     // - If troopCount > 50: ONLY allow (−,÷), (−,−), (−,×), regardless of pairIndex.
-    // - Else: use standard set; for first two pairs, exclude only (−,÷) and (×,÷).
+    // - Else: use standard set; for first two pairs, exclude only (−,÷) and (×,÷) and (−,x).
     // ----------------------------------------------------------------------
     (GateType a, GateType b) PickPairTypes(int pairIndex, int troopCount)
     {

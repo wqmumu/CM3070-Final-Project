@@ -18,7 +18,7 @@ public class TroopManager : MonoBehaviour
     // Enemies listen for leader changes
     public static event Action<Transform> OnLeaderChanged;
 
-    // Troops listen to pause/resume during combat
+    // Troops (e.g., movers/shooters) may listen to pause/resume during combat
     public static event Action<bool> OnCombatStateChanged;
 
     private AudioSource moveLoop;
@@ -30,6 +30,11 @@ public class TroopManager : MonoBehaviour
 
     public static bool CombatEngaged { get; private set; }
 
+    private bool defeatFired = false;
+
+    // When true, Update() does nothing and the loop/audio are forced stopped.
+    private bool gameFrozen = false;
+
     void Start()
     {
         InitPool(maxTroops);
@@ -38,7 +43,7 @@ public class TroopManager : MonoBehaviour
         int extra = Mathf.Clamp(startingTroops - 1, 0, maxTroops);
         SpawnTroops(extra);
 
-        // Setup troop movement loop
+        // Marching loop (shared)
         var bank = AudioManager.I.GetBank(SfxId.TroopMove);
         if (bank != null && bank.clips.Length > 0)
         {
@@ -54,6 +59,12 @@ public class TroopManager : MonoBehaviour
 
     void Update()
     {
+        if (gameFrozen)
+        {
+            if (moveLoop != null && moveLoop.isPlaying) moveLoop.Stop();
+            return;
+        }
+
         ScanForEngagement();
 
         // Pause marching sound if troop is stopped (combat engaged or no leader)
@@ -177,18 +188,23 @@ public class TroopManager : MonoBehaviour
     {
         if (!troop) return;
 
-        // Remove from active list BEFORE playing death so formation stops using it
         activeTroops.Remove(troop);
+        if (leader == troop.transform) SetLeader(null);
 
-        if (leader == troop.transform)
-            SetLeader(null);
+        // check defeat right away if this was the last troop
+        if (activeTroops.Count == 0 && !defeatFired)
+        {
+            defeatFired = true;
+            if (AudioManager.I != null)
+                AudioManager.I.Play2D(SfxId.Defeat);
+        }
 
         var unit = troop.GetComponent<TroopUnit>();
         if (unit != null)
         {
+            // still let it play death anim, but defeat already triggered
             unit.PlayDeath(() =>
             {
-                // After death anim completes, return to pool
                 troop.SetActive(false);
                 troopPool.Enqueue(troop);
             });
@@ -200,6 +216,17 @@ public class TroopManager : MonoBehaviour
         }
 
         EnsureLeaderIsValid();
+    }
+
+    private void CheckDefeat()
+    {
+        if (defeatFired) return;
+        if (activeTroops.Count > 0) return;
+
+        defeatFired = true;
+
+        if (AudioManager.I != null)
+            AudioManager.I.Play2D(SfxId.Defeat);
     }
 
     private void SetLeader(Transform newLeader)
@@ -302,6 +329,29 @@ public class TroopManager : MonoBehaviour
         {
             CombatEngaged = anyAhead;
             OnCombatStateChanged?.Invoke(CombatEngaged);
+        }
+    }
+
+    // Called by FinishGate to hard-stop troop systems (pairs with Time.timeScale = 0f)
+    public void StopAllMovementAndAudio()
+    {
+        if (gameFrozen) return;
+        gameFrozen = true;
+
+        // Stop marching loop
+        if (moveLoop != null) moveLoop.Stop();
+
+        // Disable movement/shooting on every active troop
+        for (int i = 0; i < activeTroops.Count; i++)
+        {
+            var go = activeTroops[i];
+            if (!go) continue;
+
+            var mover = go.GetComponent<TroopMovement>();
+            if (mover) mover.enabled = false;
+
+            var shooter = go.GetComponent<TroopShooter>();
+            if (shooter) shooter.enabled = false;
         }
     }
 
