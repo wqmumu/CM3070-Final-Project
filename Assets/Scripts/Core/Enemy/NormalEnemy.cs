@@ -39,5 +39,6 @@ public class NormalEnemy : EnemyBase
             anim.SetBool("Walking", false);
             anim.SetTrigger("Attacking");
         }
+        AudioManager.I.PlayAt(SfxId.ZombieAttack, transform.position);
     }
 }

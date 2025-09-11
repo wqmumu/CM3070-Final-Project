@@ -54,6 +54,8 @@ public class TroopShooter : MonoBehaviour
             projectile.SetSpeed(bulletSpeed);
             projectile.SetDamage(bulletDamage);
         }
+
+        AudioManager.I.Play2D(SfxId.TroopShoot);
     }
 
     // called when the owning troop dies

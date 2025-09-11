@@ -233,6 +233,11 @@ public abstract class EnemyBase : MonoBehaviour
         if (isDead) return;
         isDead = true;
 
+        if (GetComponent<NormalEnemy>() != null)
+            AudioManager.I.PlayAt(SfxId.ZombieDie, transform.position);
+        else if (GetComponent<BossEnemy>() != null)
+            AudioManager.I.PlayAt(SfxId.BossDie, transform.position);
+
         if (anim != null)
         {
             anim.SetBool("Walking", false);
