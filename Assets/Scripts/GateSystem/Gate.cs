@@ -176,6 +176,8 @@ public class Gate : MonoBehaviour
             }
         }
 
+        AudioManager.I.PlayAt(SfxId.GateTrigger, transform.position);
+
         // Disable sibling so only ONE gate of the pair can ever activate
         if (siblingGate != null)
             siblingGate.Deactivate();

@@ -5,15 +5,8 @@ public class Projectile : MonoBehaviour
     private float speed = 10f;
     private float damage = 10f;
 
-    public void SetSpeed(float newSpeed)
-    {
-        speed = newSpeed;
-    }
-
-    public void SetDamage(float newDamage)
-    {
-        damage = newDamage;
-    }
+    public void SetSpeed(float newSpeed) => speed = newSpeed;
+    public void SetDamage(float newDamage) => damage = newDamage;
 
     void Update()
     {
@@ -22,43 +15,63 @@ public class Projectile : MonoBehaviour
 
     private void OnTriggerEnter(Collider other)
     {
-        Vector3 hitPoint = transform.position; // Approximate hit point
+        Vector3 hitPoint = other.ClosestPoint(transform.position);
 
-        // If in combat: bullets ONLY hit enemies
         if (TroopManager.CombatEngaged)
         {
-            if (other.CompareTag("Enemy"))
+            if (other.CompareTag("Boss"))
             {
-                EnemyBase enemy = other.GetComponent<EnemyBase>();
+                var enemy = other.GetComponent<EnemyBase>();
                 if (enemy != null)
                 {
+                    AudioManager.I.PlayAt(SfxId.BulletHitBoss, hitPoint);
                     enemy.ShowHitEffectAt(hitPoint);
                     enemy.TakeDamage(damage);
                 }
                 Destroy(gameObject);
             }
-            return; // skip all else
+            else if (other.CompareTag("Zombie"))
+            {
+                var enemy = other.GetComponent<EnemyBase>();
+                if (enemy != null)
+                {
+                    AudioManager.I.PlayAt(SfxId.BulletHitZombie, hitPoint);
+                    enemy.ShowHitEffectAt(hitPoint);
+                    enemy.TakeDamage(damage);
+                }
+                Destroy(gameObject);
+            }
+            return;
         }
 
-        // Normal mode: bullets hit both gates and enemies
         if (other.CompareTag("Gate"))
         {
-            Gate gate = other.GetComponent<Gate>();
-            if (gate != null)
-                gate.OnBulletHit(hitPoint);
-
+            var gate = other.GetComponent<Gate>();
+            if (gate != null) gate.OnBulletHit(hitPoint);
+            AudioManager.I.PlayAt(SfxId.BulletHitGate, hitPoint);
             Destroy(gameObject);
         }
-        else if (other.CompareTag("Enemy"))
+        else if (other.CompareTag("Boss"))
         {
-            EnemyBase enemy = other.GetComponent<EnemyBase>();
+            var enemy = other.GetComponent<EnemyBase>();
             if (enemy != null)
             {
+                AudioManager.I.PlayAt(SfxId.BulletHitBoss, hitPoint);
+                enemy.ShowHitEffectAt(hitPoint);
+                enemy.TakeDamage(damage);
+            }
+            Destroy(gameObject);
+        }
+        else if (other.CompareTag("Zombie"))
+        {
+            var enemy = other.GetComponent<EnemyBase>();
+            if (enemy != null)
+            {
+                AudioManager.I.PlayAt(SfxId.BulletHitZombie, hitPoint);
                 enemy.ShowHitEffectAt(hitPoint);
                 enemy.TakeDamage(damage);
             }
             Destroy(gameObject);
         }
     }
-
 }

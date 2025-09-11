@@ -5,8 +5,12 @@ TagManager:
   serializedVersion: 3
   tags:
   - Gate
-  - Enemy
+  - Bullet
+  - Troop
   - Wall
+  - Enemy
+  - Boss
+  - Zombie
   layers:
   - Default
   - TransparentFX
@@ -14,11 +18,11 @@ TagManager:
   - Enemy
   - Water
   - UI
-  - 
-  - 
-  - 
-  - 
-  - 
+  - Gate
+  - Bullet
+  - Player
+  - Boss
+  - Zombie
   - 
   - 
   - 

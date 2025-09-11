@@ -12,7 +12,7 @@ GameObject:
   - component: {fileID: 4341475125689527000}
   - component: {fileID: 9151300562718960089}
   - component: {fileID: 8496806561776525571}
-  m_Layer: 0
+  m_Layer: 6
   m_Name: Right
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -120,7 +120,7 @@ GameObject:
   - component: {fileID: 208280795005939705}
   - component: {fileID: 6712240551884748824}
   - component: {fileID: 604304584864447838}
-  m_Layer: 0
+  m_Layer: 6
   m_Name: Gate
   m_TagString: Gate
   m_Icon: {fileID: 0}
@@ -212,6 +212,7 @@ MonoBehaviour:
   gateHitEffect: {fileID: 6835584617760922346, guid: 342e7206afd138b4e82f3b6227e82c2e, type: 3}
   positiveMaterial: {fileID: 2100000, guid: 6a5c853ed1e99ae45a7e7b81f93d04b4, type: 2}
   negativeMaterial: {fileID: 2100000, guid: f44ef59d5368c1540854aedeed485aa7, type: 2}
+  disabledMaterial: {fileID: 0}
   bannerRenderer: {fileID: 4930379815623598370}
   popTarget: {fileID: 4132015268824847654}
   popScale: 1.15
@@ -227,7 +228,7 @@ GameObject:
   - component: {fileID: 6612182438890509198}
   - component: {fileID: 2986454062377671821}
   - component: {fileID: 6092616792275452621}
-  m_Layer: 0
+  m_Layer: 6
   m_Name: Lable
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -403,7 +404,7 @@ GameObject:
   - component: {fileID: 4515595320011230507}
   - component: {fileID: 1412277177182640928}
   - component: {fileID: 4930379815623598370}
-  m_Layer: 0
+  m_Layer: 6
   m_Name: Banner
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -490,7 +491,7 @@ GameObject:
   - component: {fileID: 7739451057847657298}
   - component: {fileID: 7980087189935597757}
   - component: {fileID: 8317976760836588423}
-  m_Layer: 0
+  m_Layer: 6
   m_Name: Left
   m_TagString: Untagged
   m_Icon: {fileID: 0}

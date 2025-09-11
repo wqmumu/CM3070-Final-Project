@@ -21,6 +21,8 @@ public class TroopManager : MonoBehaviour
     // Troops listen to pause/resume during combat
     public static event Action<bool> OnCombatStateChanged;
 
+    private AudioSource moveLoop;
+
     [Header("Combat Engage Settings")]
     [SerializeField] private float engageRadius = 7f;
     [SerializeField] private float aheadBiasZ = 0.5f;
@@ -35,11 +37,32 @@ public class TroopManager : MonoBehaviour
 
         int extra = Mathf.Clamp(startingTroops - 1, 0, maxTroops);
         SpawnTroops(extra);
+
+        // Setup troop movement loop
+        var bank = AudioManager.I.GetBank(SfxId.TroopMove);
+        if (bank != null && bank.clips.Length > 0)
+        {
+            moveLoop = gameObject.AddComponent<AudioSource>();
+            moveLoop.outputAudioMixerGroup = AudioManager.I.sfxGroup;
+            moveLoop.loop = true;
+            moveLoop.playOnAwake = false;
+            moveLoop.clip = bank.clips[0];
+            moveLoop.volume = bank.volume;
+            moveLoop.Play();
+        }
     }
 
     void Update()
     {
         ScanForEngagement();
+
+        // Pause marching sound if troop is stopped (combat engaged or no leader)
+        if (moveLoop != null)
+        {
+            bool isMoving = !CombatEngaged && leader != null;
+            if (isMoving && !moveLoop.isPlaying) moveLoop.Play();
+            else if (!isMoving && moveLoop.isPlaying) moveLoop.Pause();
+        }
     }
 
     void InitPool(int size)

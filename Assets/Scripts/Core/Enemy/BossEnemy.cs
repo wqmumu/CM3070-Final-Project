@@ -39,5 +39,6 @@ public class BossEnemy : EnemyBase
             anim.SetBool("Walking", false);
             anim.SetTrigger("Attacking");
         }
+        AudioManager.I.PlayAt(SfxId.BossAttack, transform.position);
     }
 }

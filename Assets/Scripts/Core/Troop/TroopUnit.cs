@@ -81,6 +81,8 @@ public class TroopUnit : MonoBehaviour
 
         if (animator) animator.SetTrigger(DeathTrigger);
 
+        AudioManager.I.PlayAt(SfxId.TroopDie, transform.position);
+
         if (animator)
         {
             yield return new WaitUntil(() => animator.GetCurrentAnimatorStateInfo(0).IsName(DeathState));
