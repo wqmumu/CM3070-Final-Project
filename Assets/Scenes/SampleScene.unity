@@ -1231,7 +1231,7 @@ MonoBehaviour:
   - id: 4
     clips:
     - {fileID: 8300000, guid: 18145ec08c98cf34a858b149c7f8440f, type: 3}
-    - {fileID: 8300000, guid: 20657ad21b2935b4f9bde66cc7d85d5a, type: 3}
+    - {fileID: 8300000, guid: c32d5c21223151642af0b1ec37a6b6fb, type: 3}
     volume: 0.7
     randomPitch: 0
     is3D: 0
@@ -1259,7 +1259,6 @@ MonoBehaviour:
   - id: 7
     clips:
     - {fileID: 8300000, guid: 5820fb75f34909b4697c1846f6e8b70d, type: 3}
-    - {fileID: 8300000, guid: 61cb60628f235774cbfe2cde3f81fcd7, type: 3}
     - {fileID: 8300000, guid: 5decb9d1a1c02d04d99b5a7c0077593a, type: 3}
     volume: 0.5
     randomPitch: 0
