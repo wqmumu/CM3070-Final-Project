@@ -2,43 +2,22 @@
 
 public class NormalEnemy : EnemyBase
 {
-    [Header("Attack Settings")]
-    public int damagePerHit = 1;
-    public float attackRange = 1.5f;
-    public float attackInterval = 1f;
-
-    private float attackTimer = 0f;
-
-    protected override void Update()
+#if UNITY_EDITOR
+    // Helpful defaults when first add this component
+    private void Reset()
     {
-        base.Update();
+        damagePerHit = 1;
+        attackRange = 1.5f;
+        attackInterval = 1.0f;
 
-        if (isDead || !shouldChase || targetTroop == null)
-            return;
-
-        attackTimer += Time.deltaTime;
-
-        float distance = Vector3.Distance(transform.position, targetTroop.position);
-        if (distance <= attackRange && attackTimer >= attackInterval)
-        {
-            attackTimer = 0f;
-            Attack();
-        }
+        // Animator bindings for your zombie
+        // (Change if parameter or clip names differ)
+        // attackClipName is serialized in EnemyBase; setdefault here:
+        var so = new UnityEditor.SerializedObject(this);
+        so.FindProperty("attackClipName").stringValue = "ZombieAttack";
+        so.FindProperty("attackSfx").enumValueIndex = (int)SfxId.ZombieAttack;
+        so.FindProperty("dieSfx").enumValueIndex = (int)SfxId.ZombieDie;
+        so.ApplyModifiedPropertiesWithoutUndo();
     }
-
-    private void Attack()
-    {
-        TroopManager manager = FindFirstObjectByType<TroopManager>();
-        if (manager != null)
-        {
-            manager.RemoveTroops(damagePerHit);
-        }
-
-        if (anim != null)
-        {
-            anim.SetBool("Walking", false);
-            anim.SetTrigger("Attacking");
-        }
-        AudioManager.I.PlayAt(SfxId.ZombieAttack, transform.position);
-    }
+#endif
 }
