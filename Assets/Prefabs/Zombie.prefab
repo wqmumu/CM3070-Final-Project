@@ -544,20 +544,28 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 48c1197e70875c34ab92b9a94183077b, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  config: {fileID: 0}
   maxHP: 100
   patrolSpeed: 5
   patrolBounds: {x: -13, y: 13}
   chaseRange: 50
   chaseSpeed: 5
   stopBuffer: 0
+  damagePerHit: 1
+  attackRange: 5
+  attackInterval: 2
+  walkingBool: Walking
+  attackTrigger: Attacking
+  deadTrigger: Dead
+  attackSpeedParam: AttackSpeed
+  attackClipName: ZombieAttack
+  attackSfx: 6
+  dieSfx: 7
   meshRenderer: {fileID: 29062584091292914}
   flashColor: {r: 1, g: 0, b: 0, a: 1}
   flashDuration: 0.1
-  anim: {fileID: 0}
   hitEffectPrefab: {fileID: 6835584617760922346, guid: 342e7206afd138b4e82f3b6227e82c2e, type: 3}
-  damagePerHit: 1
-  attackRange: 5
-  attackInterval: 1.5
+  anim: {fileID: 0}
 --- !u!1 &6115771108015062052
 GameObject:
   m_ObjectHideFlags: 0

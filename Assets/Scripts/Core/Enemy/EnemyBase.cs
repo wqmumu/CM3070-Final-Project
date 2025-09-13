@@ -14,14 +14,33 @@ public abstract class EnemyBase : MonoBehaviour
     protected Vector3 targetPos;
 
     [Header("Chase Settings")]
+    [Tooltip("Begin chasing when troop is within this distance.")]
     public float chaseRange = 50f;
     [Tooltip("Chase speed while pursuing the troop")]
     public float chaseSpeed = 3f;
-    [Tooltip("Stop slightly inside attackRange so hits connect reliably")]
-    public float stopBuffer = 0.25f; // stopDistance = attackRange - stopBuffer
+    [Tooltip("Stop a bit inside attackRange so hits connect reliably.")]
+    public float stopBuffer = 0.25f;
 
-    protected Transform targetTroop;
-    protected bool shouldChase = false;
+    [Header("Attack Settings (per-enemy unique)")]
+    [Tooltip("How many troops to remove each successful hit.")]
+    public int damagePerHit = 1;
+    [Tooltip("Distance at which this enemy is allowed to attack.")]
+    public float attackRange = 1.5f;
+    [Tooltip("How often this enemy can attack (seconds per attack).")]
+    public float attackInterval = 1f;
+
+    [Header("Animator Hookups (names must match your Animator)")]
+    [SerializeField] private string walkingBool = "Walking";
+    [SerializeField] private string attackTrigger = "Attacking";
+    [SerializeField] private string deadTrigger = "Dead";
+    [Tooltip("Float parameter used as Speed Multiplier on the Attack state.")]
+    [SerializeField] private string attackSpeedParam = "AttackSpeed";
+    [Tooltip("Exact name of the attack clip used in this animator (for length lookup).")]
+    [SerializeField] private string attackClipName = "BossAttack";
+
+    [Header("Audio (per-enemy unique)")]
+    [SerializeField] private SfxId attackSfx = SfxId.ZombieAttack;
+    [SerializeField] private SfxId dieSfx = SfxId.ZombieDie;
 
     [Header("Visual Feedback")]
     public SkinnedMeshRenderer meshRenderer;
@@ -29,13 +48,17 @@ public abstract class EnemyBase : MonoBehaviour
     public float flashDuration = 0.1f;
     private Color originalColor;
 
-    [Header("Animation")]
-    public Animator anim;
-
-    [Header("Hit Effect")]
+    [Header("Hit Effect (spawned where bullets hit)")]
     [SerializeField] private GameObject hitEffectPrefab;
 
+    protected Transform targetTroop;
+    protected bool shouldChase = false;
     protected TroopManager manager;
+    public Animator anim;
+
+    private float attackTimer = 0f;
+    private bool loggedMissingAttackClip = false;
+
     public bool IsAlive => !isDead;
 
     protected virtual void Awake()
@@ -62,7 +85,7 @@ public abstract class EnemyBase : MonoBehaviour
         if (meshRenderer != null)
             originalColor = meshRenderer.material.color;
 
-        if (anim == null)
+        if (!anim)
             anim = GetComponentInChildren<Animator>();
     }
 
@@ -87,15 +110,93 @@ public abstract class EnemyBase : MonoBehaviour
             if (distance < chaseRange) shouldChase = true;
         }
 
-        if (shouldChase) Chase();
-        else Patrol();
+        if (shouldChase)
+        {
+            Chase();
+            HandleAttack();
+        }
+        else
+        {
+            Patrol();
+        }
     }
 
-    // ----- Movement -----
-
-    void Patrol()
+    // ---------- Attack ----------
+    private void HandleAttack()
     {
-        if (anim != null) anim.SetBool("Walking", true);
+        if (targetTroop == null) return;
+
+        attackTimer += Time.deltaTime;
+
+        float distance = Vector3.Distance(transform.position, targetTroop.position);
+        if (distance <= attackRange && attackTimer >= attackInterval)
+        {
+            attackTimer = 0f;
+            PerformAttack();
+        }
+    }
+
+    protected virtual void PerformAttack()
+    {
+        // Apply damage
+        if (manager != null)
+            manager.RemoveTroops(damagePerHit);
+
+        // Animate
+        if (anim != null)
+        {
+            if (!string.IsNullOrEmpty(walkingBool))
+                anim.SetBool(walkingBool, false);
+
+            // Sync attack animation speed to attackInterval
+            ApplyAttackSpeedMultiplier();
+
+            if (!string.IsNullOrEmpty(attackTrigger))
+                anim.SetTrigger(attackTrigger);
+        }
+
+        // SFX
+        if (AudioManager.I != null)
+            AudioManager.I.PlayAt(attackSfx, transform.position);
+    }
+
+    private void ApplyAttackSpeedMultiplier()
+    {
+        if (anim == null || anim.runtimeAnimatorController == null) return;
+        if (string.IsNullOrEmpty(attackSpeedParam) || string.IsNullOrEmpty(attackClipName)) return;
+
+        var clips = anim.runtimeAnimatorController.animationClips;
+        AnimationClip attackClip = null;
+        for (int i = 0; i < clips.Length; i++)
+        {
+            if (clips[i] != null && clips[i].name == attackClipName)
+            {
+                attackClip = clips[i];
+                break;
+            }
+        }
+
+        if (attackClip == null)
+        {
+            if (!loggedMissingAttackClip)
+            {
+                Debug.LogWarning($"[{name}] EnemyBase: Attack clip '{attackClipName}' not found on Animator '{anim.runtimeAnimatorController.name}'. " +
+                                 $"Attack will still play, but speed won’t be synced.");
+                loggedMissingAttackClip = true;
+            }
+            return;
+        }
+
+        float targetDur = Mathf.Max(0.01f, attackInterval);
+        float speed = attackClip.length / targetDur;  // so state duration == attackInterval
+        anim.SetFloat(attackSpeedParam, speed);
+    }
+
+    // ---------- Movement ----------
+    private void Patrol()
+    {
+        if (anim != null && !string.IsNullOrEmpty(walkingBool))
+            anim.SetBool(walkingBool, true);
 
         transform.position = Vector3.MoveTowards(transform.position, targetPos, patrolSpeed * Time.deltaTime);
 
@@ -111,22 +212,10 @@ public abstract class EnemyBase : MonoBehaviour
             SetNewTarget();
     }
 
-    void SetNewTarget()
+    private void SetNewTarget()
     {
         float newX = Random.Range(patrolBounds.x, patrolBounds.y);
         targetPos = new Vector3(newX, transform.position.y, transform.position.z);
-    }
-
-    // Resolve each enemy's attackRange without requiring overrides
-    protected float ResolveAttackRange()
-    {
-        var n = GetComponent<NormalEnemy>();
-        if (n != null) return n.attackRange;
-
-        var b = GetComponent<BossEnemy>();
-        if (b != null) return b.attackRange;
-
-        return 1.5f; // default
     }
 
     protected virtual void Chase()
@@ -134,13 +223,12 @@ public abstract class EnemyBase : MonoBehaviour
         if (TargetInvalid()) return;
 
         float distance = Vector3.Distance(transform.position, targetTroop.position);
-
-        float attackRange = ResolveAttackRange();
         float stopDistance = Mathf.Max(0.05f, attackRange - stopBuffer);
 
         bool shouldAdvance = distance > stopDistance;
 
-        if (anim != null) anim.SetBool("Walking", shouldAdvance);
+        if (anim != null && !string.IsNullOrEmpty(walkingBool))
+            anim.SetBool(walkingBool, shouldAdvance);
 
         if (shouldAdvance)
         {
@@ -154,9 +242,8 @@ public abstract class EnemyBase : MonoBehaviour
             transform.rotation = Quaternion.Slerp(transform.rotation, Quaternion.LookRotation(lookDir), Time.deltaTime * 5f);
     }
 
-    // ----- Target management -----
-
-    void HandleLeaderChanged(Transform t) { targetTroop = t; }
+    // ---------- Target ----------
+    private void HandleLeaderChanged(Transform t) { targetTroop = t; }
 
     protected void AcquireTarget()
     {
@@ -192,8 +279,7 @@ public abstract class EnemyBase : MonoBehaviour
         return false;
     }
 
-    // ----- Damage & VFX -----
-
+    // ---------- Damage & VFX ----------
     public virtual void TakeDamage(float amount)
     {
         if (isDead) return;
@@ -233,15 +319,15 @@ public abstract class EnemyBase : MonoBehaviour
         if (isDead) return;
         isDead = true;
 
-        if (GetComponent<NormalEnemy>() != null)
-            AudioManager.I.PlayAt(SfxId.ZombieDie, transform.position);
-        else if (GetComponent<BossEnemy>() != null)
-            AudioManager.I.PlayAt(SfxId.BossDie, transform.position);
+        if (AudioManager.I != null)
+            AudioManager.I.PlayAt(dieSfx, transform.position);
 
         if (anim != null)
         {
-            anim.SetBool("Walking", false);
-            anim.SetTrigger("Dead");
+            if (!string.IsNullOrEmpty(walkingBool))
+                anim.SetBool(walkingBool, false);
+            if (!string.IsNullOrEmpty(deadTrigger))
+                anim.SetTrigger(deadTrigger);
         }
 
         shouldChase = false;
@@ -250,5 +336,18 @@ public abstract class EnemyBase : MonoBehaviour
 
         this.enabled = false;
         Destroy(gameObject, 3f);
+    }
+
+    // ---------- Editor Safety ----------
+    private void OnValidate()
+    {
+        maxHP = Mathf.Max(1f, maxHP);
+        patrolSpeed = Mathf.Max(0f, patrolSpeed);
+        chaseSpeed = Mathf.Max(0f, chaseSpeed);
+        stopBuffer = Mathf.Clamp(stopBuffer, 0f, 10f);
+
+        damagePerHit = Mathf.Max(0, damagePerHit);
+        attackRange = Mathf.Max(0.01f, attackRange);
+        attackInterval = Mathf.Max(0.05f, attackInterval);
     }
 }
