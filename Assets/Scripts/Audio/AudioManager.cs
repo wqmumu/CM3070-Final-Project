@@ -25,21 +25,15 @@ public enum SfxId
 public class SfxBank
 {
     public SfxId id;
-    public AudioClip[] clips;                  // allow variations
+    public AudioClip[] clips;
     [Range(0f, 1f)] public float volume = 1f;
     [Range(-0.2f, 0.2f)] public float randomPitch = 0.05f;
-    public bool is3D = false;                  // hint only; Play2D ignores this
+    public bool is3D = false;
 
-    // ---- Performance hints (tunable in Inspector) ----
     [Header("Perf Hints")]
-    [Tooltip("Minimum time between plays of THIS SFX (seconds). 0 = no limit.")]
-    public float minInterval = 0.03f;          // prevents dozens of identical plays per frame
-
-    [Tooltip("Skip 3D playback if farther than this (meters). 0 = unlimited.")]
-    public float maxDistance = 35f;            // avoids playing off-screen audio
-
-    [Tooltip("Lower = more important (Unity priority 0..256).")]
-    [Range(0, 256)] public int priority = 128; // voice arbitration when many sounds overlap
+    public float minInterval = 0.03f;
+    public float maxDistance = 35f;
+    [Range(0, 256)] public int priority = 128;
 }
 
 public class AudioManager : MonoBehaviour
@@ -55,23 +49,19 @@ public class AudioManager : MonoBehaviour
     public SfxBank[] sfxBanks;
 
     [Header("Pool")]
-    [SerializeField] int poolSize = 24;        // initial prewarmed sources
-    [SerializeField, Tooltip("Hard cap on concurrent SFX voices. New plays beyond this are dropped.")]
-    int maxSimultaneousSfx = 32;
+    [SerializeField] int poolSize = 24;
+    [SerializeField] int maxSimultaneousSfx = 32;
 
     readonly Queue<AudioSource> pool = new();
-    int currentActiveVoices = 0;               // voices currently playing
+    int currentActiveVoices = 0;
 
     [Header("Background Music")]
     public AudioClip backgroundMusic;
 
     [Header("Music")]
-    public AudioSource musicSource;            // dedicated looping music source
+    public AudioSource musicSource;
 
-    // Dedicated one-shot 2D source for very frequent UI/pew sounds
     private AudioSource _oneShot2D;
-
-    // Fast lookup for banks + simple per-ID cooldowns
     Dictionary<SfxId, SfxBank> dict;
     readonly Dictionary<SfxId, float> lastPlayTime = new();
 
@@ -79,7 +69,7 @@ public class AudioManager : MonoBehaviour
     {
         if (backgroundMusic != null)
         {
-            PlayMusic(backgroundMusic, 1f); // fade-in over 1 sec
+            PlayMusic(backgroundMusic, 1f);
         }
     }
 
@@ -88,16 +78,12 @@ public class AudioManager : MonoBehaviour
         if (I != null && I != this) { Destroy(gameObject); return; }
         I = this;
 
-        // Make sure we're a root object so DDOL works
         if (transform.parent != null) transform.SetParent(null);
-
         DontDestroyOnLoad(gameObject);
 
-        // Build fast lookup
         dict = new Dictionary<SfxId, SfxBank>();
         foreach (var b in sfxBanks) dict[b.id] = b;
 
-        // Prewarm SFX pool
         for (int i = 0; i < poolSize; i++)
         {
             var src = gameObject.AddComponent<AudioSource>();
@@ -106,7 +92,6 @@ public class AudioManager : MonoBehaviour
             pool.Enqueue(src);
         }
 
-        // Dedicated looping music source
         if (!musicSource)
         {
             musicSource = gameObject.AddComponent<AudioSource>();
@@ -115,21 +100,17 @@ public class AudioManager : MonoBehaviour
             musicSource.playOnAwake = false;
         }
 
-        // One-shot 2D source for spammy SFX (e.g., TroopShoot)
         if (_oneShot2D == null)
         {
             _oneShot2D = gameObject.AddComponent<AudioSource>();
             _oneShot2D.outputAudioMixerGroup = sfxGroup;
             _oneShot2D.playOnAwake = false;
-            _oneShot2D.spatialBlend = 0f; // 2D
+            _oneShot2D.spatialBlend = 0f;
         }
     }
 
-    // --- Source management ----------------------------------------------------
-
     AudioSource GrabSource(bool is3D, Vector3? pos, SfxBank bank)
     {
-        // Respect hard cap: if we already have max voices, drop this play politely
         if (pool.Count == 0 && currentActiveVoices >= maxSimultaneousSfx)
             return null;
 
@@ -139,7 +120,6 @@ public class AudioManager : MonoBehaviour
         src.spatialBlend = is3D ? 1f : 0f;
         if (is3D && pos.HasValue) src.transform.position = pos.Value;
 
-        // Sensible 3D defaults
         src.minDistance = 2f;
         src.maxDistance = Mathf.Max(5f, bank.maxDistance > 0 ? bank.maxDistance : 30f);
         src.dopplerLevel = 0f;
@@ -148,7 +128,6 @@ public class AudioManager : MonoBehaviour
         return src;
     }
 
-    // Recycle using realtime so timeScale changes don’t stall the pool
     void Recycle(AudioSource src, float time)
     {
         StartCoroutine(RecycleAfter(src, time));
@@ -162,14 +141,10 @@ public class AudioManager : MonoBehaviour
         currentActiveVoices = Mathf.Max(0, currentActiveVoices - 1);
     }
 
-    // --- Public API -----------------------------------------------------------
-
-    // Allocation-free, pool-free 2D playback (ideal for spammy SFX)
     public void Play2D(SfxId id)
     {
         if (!dict.TryGetValue(id, out var bank) || bank.clips == null || bank.clips.Length == 0) return;
 
-        // Per-ID cooldown
         float now = Time.realtimeSinceStartup;
         if (bank.minInterval > 0f && lastPlayTime.TryGetValue(id, out float last) && (now - last) < bank.minInterval)
             return;
@@ -181,21 +156,17 @@ public class AudioManager : MonoBehaviour
         _oneShot2D.pitch = 1f + UnityEngine.Random.Range(-bank.randomPitch, bank.randomPitch);
         _oneShot2D.volume = bank.volume;
         _oneShot2D.PlayOneShot(clip);
-        // one-shot 2D does not consume a pooled voice
     }
 
-    // Positional (3D) playback via pool (bullet hits, enemies, gate trigger, etc.)
     public void PlayAt(SfxId id, Vector3 pos)
     {
         if (!dict.TryGetValue(id, out var bank) || bank.clips == null || bank.clips.Length == 0) return;
 
-        // Per-ID cooldown
         float now = Time.realtimeSinceStartup;
         if (bank.minInterval > 0f && lastPlayTime.TryGetValue(id, out float last) && (now - last) < bank.minInterval)
             return;
         lastPlayTime[id] = now;
 
-        // Distance cull against camera (skip inaudible far sounds)
         if (bank.maxDistance > 0f)
         {
             var cam = Camera.main;
@@ -207,7 +178,7 @@ public class AudioManager : MonoBehaviour
         if (!clip) return;
 
         var src = GrabSource(true, pos, bank);
-        if (src == null) return; // hard-cap reached, politely skip
+        if (src == null) return;
 
         src.clip = clip;
         src.volume = bank.volume;
@@ -218,7 +189,6 @@ public class AudioManager : MonoBehaviour
         Recycle(src, clip.length / Mathf.Abs(src.pitch));
     }
 
-    // Music control (simple fade-in)
     public void PlayMusic(AudioClip clip, float fade = 0.5f)
     {
         if (clip == null) return;
@@ -245,10 +215,37 @@ public class AudioManager : MonoBehaviour
         musicSource.volume = 1f;
     }
 
-    // Helper for systems that want to fetch a clip directly (e.g., TroopMove loop)
     public SfxBank GetBank(SfxId id)
     {
         if (dict.TryGetValue(id, out var bank)) return bank;
         return null;
+    }
+
+    public void PlayAtImportant(SfxId id, Vector3 pos, bool reinforce2D = true)
+    {
+        if (!dict.TryGetValue(id, out var bank) || bank.clips == null || bank.clips.Length == 0) return;
+
+        var clip = bank.clips[UnityEngine.Random.Range(0, bank.clips.Length)];
+        if (!clip) return;
+
+        var src = GrabSource(true, pos, bank);
+        if (src != null)
+        {
+            src.clip = clip;
+            src.volume = Mathf.Min(1f, bank.volume * 1.2f);
+            src.pitch = 1f + UnityEngine.Random.Range(-bank.randomPitch, bank.randomPitch);
+            src.priority = Mathf.Min(bank.priority, 64);
+            src.Play();
+
+            currentActiveVoices++;
+            Recycle(src, clip.length / Mathf.Abs(src.pitch));
+        }
+
+        if (reinforce2D && _oneShot2D != null)
+        {
+            _oneShot2D.pitch = 1f;
+            _oneShot2D.volume = Mathf.Clamp01((dict[id].volume) * 0.8f);
+            _oneShot2D.PlayOneShot(clip);
+        }
     }
 }
