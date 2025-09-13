@@ -475,14 +475,21 @@ MonoBehaviour:
   chaseRange: 50
   chaseSpeed: 5
   stopBuffer: 0
+  damagePerHit: 10
+  attackRange: 5
+  attackInterval: 3
+  walkingBool: Walking
+  attackTrigger: Attacking
+  deadTrigger: Dead
+  attackSpeedParam: AttackSpeed
+  attackClipName: BossAttack
+  attackSfx: 6
+  dieSfx: 7
   meshRenderer: {fileID: 7723276496093653533}
   flashColor: {r: 1, g: 0, b: 0, a: 1}
   flashDuration: 0.05
-  anim: {fileID: 0}
   hitEffectPrefab: {fileID: 6835584617760922346, guid: 342e7206afd138b4e82f3b6227e82c2e, type: 3}
-  damagePerHit: 10
-  attackRange: 5
-  attackInterval: 2
+  anim: {fileID: 0}
 --- !u!1 &3987045986270559188
 GameObject:
   m_ObjectHideFlags: 0

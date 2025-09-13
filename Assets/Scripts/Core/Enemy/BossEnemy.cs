@@ -2,43 +2,18 @@
 
 public class BossEnemy : EnemyBase
 {
-    [Header("Attack Settings")]
-    public int damagePerHit = 10;
-    public float attackRange = 2.5f;
-    public float attackInterval = 2f;
-
-    private float attackTimer = 0f;
-
-    protected override void Update()
+#if UNITY_EDITOR
+    private void Reset()
     {
-        base.Update();
+        damagePerHit = 10;
+        attackRange = 2.5f;
+        attackInterval = 2.0f;
 
-        if (isDead || !shouldChase || targetTroop == null)
-            return;
-
-        attackTimer += Time.deltaTime;
-
-        float distance = Vector3.Distance(transform.position, targetTroop.position);
-        if (distance <= attackRange && attackTimer >= attackInterval)
-        {
-            attackTimer = 0f;
-            Attack();
-        }
+        var so = new UnityEditor.SerializedObject(this);
+        so.FindProperty("attackClipName").stringValue = "BossAttack";
+        so.FindProperty("attackSfx").enumValueIndex = (int)SfxId.BossAttack;
+        so.FindProperty("dieSfx").enumValueIndex = (int)SfxId.BossDie;
+        so.ApplyModifiedPropertiesWithoutUndo();
     }
-
-    private void Attack()
-    {
-        TroopManager manager = FindFirstObjectByType<TroopManager>();
-        if (manager != null)
-        {
-            manager.RemoveTroops(damagePerHit);
-        }
-
-        if (anim != null)
-        {
-            anim.SetBool("Walking", false);
-            anim.SetTrigger("Attacking");
-        }
-        AudioManager.I.PlayAt(SfxId.BossAttack, transform.position);
-    }
+#endif
 }
