@@ -1754,7 +1754,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 1}
   m_AnchorMax: {x: 0, y: 1}
-  m_AnchoredPosition: {x: 367.5, y: -319.5}
+  m_AnchoredPosition: {x: 417, y: -356.5}
   m_SizeDelta: {x: 800, y: 100}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &1020379714
@@ -1910,9 +1910,7 @@ MonoBehaviour:
   controlHintsOverlay: {fileID: 88031184}
   openSettingsWithEscape: 1
   lockCursorDuringPlay: 0
-  mixer: {fileID: 0}
-  normalSnapshot: {fileID: 24500006, guid: 2f5734f3f581b764fa44126f940ee9b8, type: 2}
-  pausedSnapshot: {fileID: 4443153042753402056, guid: 2f5734f3f581b764fa44126f940ee9b8, type: 2}
+  controlHintsOpenedFromSettings: 0
 --- !u!114 &1023730822
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1940,18 +1938,15 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   masterMixer: {fileID: 24100000, guid: 2f5734f3f581b764fa44126f940ee9b8, type: 2}
-  masterParam: Master
-  musicParam: Music
-  sfxParam: SFX
+  masterParam: MasterVol
+  musicParam: MusicVol
+  sfxParam: SFXVol
   masterSlider: {fileID: 1897407623}
   musicSlider: {fileID: 1606629644}
   sfxSlider: {fileID: 22584799}
   masterLabel: {fileID: 1297766435}
   musicLabel: {fileID: 1221332581}
   sfxLabel: {fileID: 1280702669}
-  masterBaseText: Master
-  musicBaseText: Music
-  sfxBaseText: SFX
 --- !u!114 &1023730824
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -2801,7 +2796,7 @@ MonoBehaviour:
   m_VertexBufferAutoSizeReduction: 0
   m_useMaxVisibleDescender: 1
   m_pageToDisplay: 1
-  m_margin: {x: 0, y: 0, z: 0, w: 0}
+  m_margin: {x: -63.89676, y: 0, z: -162.91821, w: 0}
   m_isUsingLegacyAnimationComponent: 0
   m_isVolumetricText: 0
   m_hasFontAssetChanged: 0
@@ -2876,7 +2871,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 1}
   m_AnchorMax: {x: 0, y: 1}
-  m_AnchoredPosition: {x: 367.5, y: -189.5}
+  m_AnchoredPosition: {x: 417, y: -226.5}
   m_SizeDelta: {x: 800, y: 100}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &1269933258
@@ -3144,7 +3139,7 @@ MonoBehaviour:
   m_VertexBufferAutoSizeReduction: 0
   m_useMaxVisibleDescender: 1
   m_pageToDisplay: 1
-  m_margin: {x: 0, y: 0, z: 0, w: 0}
+  m_margin: {x: -61.478287, y: 0, z: -214.02649, w: 0}
   m_isUsingLegacyAnimationComponent: 0
   m_isVolumetricText: 0
   m_hasFontAssetChanged: 0
@@ -3307,7 +3302,7 @@ MonoBehaviour:
   m_VertexBufferAutoSizeReduction: 0
   m_useMaxVisibleDescender: 1
   m_pageToDisplay: 1
-  m_margin: {x: 0, y: 0, z: 0, w: 0}
+  m_margin: {x: -60.917892, y: 0, z: -213.87085, w: 0}
   m_isUsingLegacyAnimationComponent: 0
   m_isVolumetricText: 0
   m_hasFontAssetChanged: 0
@@ -3601,7 +3596,7 @@ MonoBehaviour:
     clips:
     - {fileID: 8300000, guid: b350cd34335dfe14daeacf9ba6c0476d, type: 3}
     volume: 0.5
-    randomPitch: 0
+    randomPitch: 0.05
     is3D: 0
     minInterval: 0.03
     maxDistance: 35
@@ -3610,7 +3605,7 @@ MonoBehaviour:
     clips:
     - {fileID: 8300000, guid: b2cd2d3aff439e74d820cf3b0916b975, type: 3}
     volume: 0.5
-    randomPitch: 0
+    randomPitch: 0.05
     is3D: 0
     minInterval: 0.03
     maxDistance: 35
@@ -3619,7 +3614,7 @@ MonoBehaviour:
     clips:
     - {fileID: 8300000, guid: 91407b751f9a9c64fb0b66d8a78620e2, type: 3}
     volume: 0.3
-    randomPitch: 0
+    randomPitch: 0.05
     is3D: 0
     minInterval: 0.03
     maxDistance: 35
@@ -3629,7 +3624,7 @@ MonoBehaviour:
     - {fileID: 8300000, guid: af39dc610b3080943a95f1fdad44ba50, type: 3}
     - {fileID: 8300000, guid: 8cc6cb7cc12e723479460fe8574437f2, type: 3}
     volume: 0.6
-    randomPitch: 0
+    randomPitch: 0.05
     is3D: 0
     minInterval: 0.03
     maxDistance: 35
@@ -3639,7 +3634,7 @@ MonoBehaviour:
     - {fileID: 8300000, guid: 18145ec08c98cf34a858b149c7f8440f, type: 3}
     - {fileID: 8300000, guid: c32d5c21223151642af0b1ec37a6b6fb, type: 3}
     volume: 0.7
-    randomPitch: 0
+    randomPitch: 0.05
     is3D: 0
     minInterval: 0.03
     maxDistance: 35
@@ -3648,7 +3643,7 @@ MonoBehaviour:
     clips:
     - {fileID: 8300000, guid: 35921ebf7fd1ec4459bc466113433cf9, type: 3}
     volume: 0.8
-    randomPitch: 0
+    randomPitch: 0.05
     is3D: 0
     minInterval: 0.03
     maxDistance: 35
@@ -3657,7 +3652,7 @@ MonoBehaviour:
     clips:
     - {fileID: 0}
     volume: 0.35
-    randomPitch: 0
+    randomPitch: 0.05
     is3D: 0
     minInterval: 0.03
     maxDistance: 35
@@ -3667,7 +3662,7 @@ MonoBehaviour:
     - {fileID: 8300000, guid: 5820fb75f34909b4697c1846f6e8b70d, type: 3}
     - {fileID: 8300000, guid: 5decb9d1a1c02d04d99b5a7c0077593a, type: 3}
     volume: 0.5
-    randomPitch: 0
+    randomPitch: 0.05
     is3D: 0
     minInterval: 0.03
     maxDistance: 35
@@ -3676,7 +3671,7 @@ MonoBehaviour:
     clips:
     - {fileID: 0}
     volume: 0.35
-    randomPitch: 0
+    randomPitch: 0.05
     is3D: 0
     minInterval: 0.03
     maxDistance: 35
@@ -3687,7 +3682,7 @@ MonoBehaviour:
     - {fileID: 8300000, guid: 883d8d619b9bd544da20bdd20835d902, type: 3}
     - {fileID: 8300000, guid: 811e847cc583a354ba9421a1c7dcc42b, type: 3}
     volume: 0.7
-    randomPitch: 0
+    randomPitch: 0.05
     is3D: 0
     minInterval: 0.03
     maxDistance: 35
@@ -3696,7 +3691,7 @@ MonoBehaviour:
     clips:
     - {fileID: 8300000, guid: b6061a30877a7bc459261b1b4de7ec52, type: 3}
     volume: 0.5
-    randomPitch: 0
+    randomPitch: 0.05
     is3D: 0
     minInterval: 0.03
     maxDistance: 35
@@ -3705,7 +3700,7 @@ MonoBehaviour:
     clips:
     - {fileID: 8300000, guid: e35d8be23932440498a79889e628533f, type: 3}
     volume: 0.5
-    randomPitch: 0
+    randomPitch: 0.05
     is3D: 0
     minInterval: 0.03
     maxDistance: 35
@@ -3714,7 +3709,7 @@ MonoBehaviour:
     clips:
     - {fileID: 8300000, guid: 71b4e555f0c851b4fba8a10a83f8e920, type: 3}
     volume: 0.5
-    randomPitch: 0
+    randomPitch: 0.05
     is3D: 0
     minInterval: 0.03
     maxDistance: 35
@@ -4135,7 +4130,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 1}
   m_AnchorMax: {x: 0, y: 1}
-  m_AnchoredPosition: {x: 367.5, y: -449.5}
+  m_AnchoredPosition: {x: 417, y: -486.5}
   m_SizeDelta: {x: 800, y: 100}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &1573775561
@@ -5010,7 +5005,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 1}
   m_AnchorMax: {x: 0, y: 1}
-  m_AnchoredPosition: {x: 367.5, y: -554.5}
+  m_AnchoredPosition: {x: 417, y: -591.5}
   m_SizeDelta: {x: 200, y: 50}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &1996392584
