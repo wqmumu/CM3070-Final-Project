@@ -1,4 +1,5 @@
 using UnityEngine;
+using UnityEngine.EventSystems; // needed for UI check
 
 public class TroopMovement : MonoBehaviour
 {
@@ -8,7 +9,7 @@ public class TroopMovement : MonoBehaviour
     private Camera mainCamera;
     private bool isLeader = false;
     private bool _paused = false;
-    private TroopUnit unit;  // <-- cache
+    private TroopUnit unit;  // cache
 
     public void SetAsLeader(bool status) { isLeader = status; }
     public void SetMovementPaused(bool paused) { _paused = paused; }
@@ -22,22 +23,27 @@ public class TroopMovement : MonoBehaviour
 
     void Update()
     {
-        // if dying, do nothing at all
+        // stop if dying
         if (unit != null && unit.IsDying) return;
 
-        // leader can still be dragged left/right
+        // only leader reads input
         if (isLeader) HandleLateralInput();
 
-        // pause only forward motion
+        // forward movement if not paused
         if (_paused) return;
-
-        // forward movement
         transform.Translate(Vector3.forward * speed * Time.deltaTime);
     }
 
     void HandleLateralInput()
     {
         if (mainCamera == null) return;
+
+        // 1) Skip if pointer is over any UI
+        if (IsPointerOverUI()) return;
+
+        // 2) Skip if game globally paused
+        if (Time.timeScale == 0f) return;
+
         if (!Input.GetMouseButton(0)) return;
 
         Ray ray = mainCamera.ScreenPointToRay(Input.mousePosition);
@@ -47,5 +53,21 @@ public class TroopMovement : MonoBehaviour
             Vector3 newPos = new Vector3(clampedX, transform.position.y, transform.position.z);
             transform.position = Vector3.Lerp(transform.position, newPos, Time.deltaTime * MouseMoveSpeed);
         }
+    }
+
+    private static bool IsPointerOverUI()
+    {
+        if (EventSystem.current == null) return false;
+
+        // mouse
+        if (EventSystem.current.IsPointerOverGameObject()) return true;
+
+        // touches
+        for (int i = 0; i < Input.touchCount; i++)
+        {
+            if (EventSystem.current.IsPointerOverGameObject(Input.GetTouch(i).fingerId))
+                return true;
+        }
+        return false;
     }
 }

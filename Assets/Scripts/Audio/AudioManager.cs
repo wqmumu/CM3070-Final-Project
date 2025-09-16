@@ -100,6 +100,9 @@ public class AudioManager : MonoBehaviour
             musicSource.playOnAwake = false;
         }
 
+        // keep BGM audible while paused
+        musicSource.ignoreListenerPause = true;
+
         if (_oneShot2D == null)
         {
             _oneShot2D = gameObject.AddComponent<AudioSource>();
@@ -107,6 +110,28 @@ public class AudioManager : MonoBehaviour
             _oneShot2D.playOnAwake = false;
             _oneShot2D.spatialBlend = 0f;
         }
+
+        // apply saved mixer values on boot
+        ApplyPrefsToMixer();
+    }
+
+    private void ApplyPrefsToMixer()
+    {
+        float master = PlayerPrefs.GetFloat("pp_master", 1f);
+        float music = PlayerPrefs.GetFloat("pp_music", 1f);
+        float sfx = PlayerPrefs.GetFloat("pp_sfx", 1f);
+
+        SetMixerLinear("MasterVol", master);
+        SetMixerLinear("MusicVol", music);
+        SetMixerLinear("SFXVol", sfx);
+    }
+
+    private void SetMixerLinear(string exposedParam, float linear01)
+    {
+        if (!mixer || string.IsNullOrEmpty(exposedParam)) return;
+        if (Mathf.Approximately(linear01, 0f)) { mixer.SetFloat(exposedParam, -80f); return; }
+        float l = Mathf.Clamp(linear01, 0.0001f, 1f);
+        mixer.SetFloat(exposedParam, Mathf.Log10(l) * 20f);
     }
 
     AudioSource GrabSource(bool is3D, Vector3? pos, SfxBank bank)
@@ -143,6 +168,9 @@ public class AudioManager : MonoBehaviour
 
     public void Play2D(SfxId id)
     {
+        // block troop movement sfx while paused
+        if (Time.timeScale == 0f && id == SfxId.TroopMove) return;
+
         if (!dict.TryGetValue(id, out var bank) || bank.clips == null || bank.clips.Length == 0) return;
 
         float now = Time.realtimeSinceStartup;
@@ -160,6 +188,9 @@ public class AudioManager : MonoBehaviour
 
     public void PlayAt(SfxId id, Vector3 pos)
     {
+        // block troop movement sfx while paused
+        if (Time.timeScale == 0f && id == SfxId.TroopMove) return;
+
         if (!dict.TryGetValue(id, out var bank) || bank.clips == null || bank.clips.Length == 0) return;
 
         float now = Time.realtimeSinceStartup;
@@ -223,6 +254,9 @@ public class AudioManager : MonoBehaviour
 
     public void PlayAtImportant(SfxId id, Vector3 pos, bool reinforce2D = true)
     {
+        // block troop movement sfx while paused
+        if (Time.timeScale == 0f && id == SfxId.TroopMove) return;
+
         if (!dict.TryGetValue(id, out var bank) || bank.clips == null || bank.clips.Length == 0) return;
 
         var clip = bank.clips[UnityEngine.Random.Range(0, bank.clips.Length)];
@@ -244,7 +278,7 @@ public class AudioManager : MonoBehaviour
         if (reinforce2D && _oneShot2D != null)
         {
             _oneShot2D.pitch = 1f;
-            _oneShot2D.volume = Mathf.Clamp01((dict[id].volume) * 0.8f);
+            _oneShot2D.volume = Mathf.Clamp01(dict[id].volume * 0.8f);
             _oneShot2D.PlayOneShot(clip);
         }
     }
