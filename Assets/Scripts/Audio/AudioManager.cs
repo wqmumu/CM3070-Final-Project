@@ -58,6 +58,10 @@ public class AudioManager : MonoBehaviour
     [Header("Background Music")]
     public AudioClip backgroundMusic;
 
+    [Range(0f, 1f)]
+    [Tooltip("Default volume for GAME background music (multiplies with Mixer → Music).")]
+    public float backgroundMusicVolume = 1f;   // <-- Inspector slider you asked for
+
     [Header("Music")]
     public AudioSource musicSource;
 
@@ -111,9 +115,21 @@ public class AudioManager : MonoBehaviour
             _oneShot2D.spatialBlend = 0f;
         }
 
-        // apply saved mixer values on boot
+        // apply saved mixer values on boot (Master/Music/SFX buses)
         ApplyPrefsToMixer();
+
+        // apply inspector slider for game BGM
+        musicSource.volume = Mathf.Clamp01(backgroundMusicVolume);
     }
+
+#if UNITY_EDITOR
+    // When you tweak the slider in the Inspector, this makes the change take effect next Play.
+    private void OnValidate()
+    {
+        if (musicSource != null)
+            musicSource.volume = Mathf.Clamp01(backgroundMusicVolume);
+    }
+#endif
 
     private void ApplyPrefsToMixer()
     {
@@ -233,17 +249,29 @@ public class AudioManager : MonoBehaviour
         {
             for (float s = t; s > 0f; s -= Time.unscaledDeltaTime)
             {
-                musicSource.volume = Mathf.Lerp(0f, start, s / t);
+                musicSource.volume = Mathf.Lerp(0f, start, s / t); // fade down to 0
                 yield return null;
             }
         }
-        musicSource.clip = clip; musicSource.volume = 0f; musicSource.Play();
+
+        musicSource.clip = clip;
+        musicSource.volume = 0f;
+        musicSource.Play();
+
+        float target = Mathf.Clamp01(backgroundMusicVolume);      // use inspector slider as target
         for (float s = 0; s < t; s += Time.unscaledDeltaTime)
         {
-            musicSource.volume = Mathf.Lerp(0f, 1f, s / t);
+            musicSource.volume = Mathf.Lerp(0f, target, s / t);
             yield return null;
         }
-        musicSource.volume = 1f;
+        musicSource.volume = target;
+    }
+
+    // Optional: call this from a UI slider if you ever want in-game control of GAME BGM volume
+    public void SetBackgroundMusicVolume(float v01)
+    {
+        backgroundMusicVolume = Mathf.Clamp01(v01);
+        if (musicSource) musicSource.volume = backgroundMusicVolume;
     }
 
     public SfxBank GetBank(SfxId id)
@@ -283,3 +311,4 @@ public class AudioManager : MonoBehaviour
         }
     }
 }
+ 
