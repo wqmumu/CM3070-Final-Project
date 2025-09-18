@@ -46,8 +46,24 @@ public class LevelGenerator : MonoBehaviour
     [Header("Dynamic Subtract Scaling")]
     public int lowTroopMin = 1;
     public int highTroopMax = 100;
-    public Vector2Int subtractAtLow = new Vector2Int(5, 10);     // when troopCount ~ lowTroopMin
+    public Vector2Int subtractAtLow = new Vector2Int(5, 10);      // when troopCount ~ lowTroopMin
     public Vector2Int subtractAtHigh = new Vector2Int(150, 250);  // when troopCount ~ highTroopMax
+
+    [Header("Boss Settings")]
+    [Tooltip("How many bosses to spawn at the final pair.")]
+    [Min(1)] public int finalBossCount = 2;
+    [Tooltip("Horizontal spacing between bosses at the final pair.")]
+    public float bossSpacingX = 4f;
+
+    [Header("Subtract Pair Controls")]
+    [Tooltip("If both gates are Subtract, enforce a fixed difference between their values.")]
+    public bool useFixedSubtractDifference = true;
+    [Tooltip("Exact difference (greater - lesser) when both gates are Subtract.")]
+    [Min(1)] public int subtractPairDifference = 50;
+    [Tooltip("When ON, ignore Dynamic Subtract Scaling for the subtract pair and pick the anchor from the range below.")]
+    public bool ignoreDynamicRangeForFixedDiff = true;
+    [Tooltip("Anchor range (inclusive) used when ignoring dynamic range. Final pair will be [anchor] and [anchor - diff].")]
+    public Vector2Int fixedSubtractAnchorRange = new Vector2Int(300, 450);
 
     // cached layout bounds
     float leftHalfMinX, leftHalfMaxX, rightHalfMinX, rightHalfMaxX;
@@ -136,32 +152,52 @@ public class LevelGenerator : MonoBehaviour
 
         if (leftType == GateType.Subtract && rightType == GateType.Subtract)
         {
-            // Ensure two different values: one strictly LESS than the other
-            int lesser = Random.Range(subMin, subMax + 1);
-            int greater;
+            bool enforced = false;
 
-            if (lesser < subMax)
+            if (useFixedSubtractDifference && subtractPairDifference >= 1)
             {
-                // pick something >= lesser+1 .. subMax
-                greater = Random.Range(lesser + 1, subMax + 1);
-            }
-            else
-            {
-                // lesser == subMax; step one down to guarantee inequality
-                lesser = Mathf.Max(1, subMax - 1);
-                greater = subMax;
+                int diff = subtractPairDifference;
+
+                if (ignoreDynamicRangeForFixedDiff)
+                {
+                    // Bypass dynamic range completely; pick anchor from fixed range
+                    int minA = Mathf.Max(1 + diff, fixedSubtractAnchorRange.x); // ensure partner >= 1
+                    int maxA = fixedSubtractAnchorRange.y;
+                    if (minA <= maxA)
+                    {
+                        int anchor = Random.Range(minA, maxA + 1);
+                        int partner = anchor - diff;
+
+                        if (Random.value < 0.5f) { leftVal = anchor; rightVal = partner; }
+                        else { leftVal = partner; rightVal = anchor; }
+                        enforced = true;
+                    }
+                }
+                else
+                {
+                    // Use dynamic window but still enforce exact difference (one random, other = random - diff)
+                    if (subMin + diff <= subMax)
+                    {
+                        int anchor = Random.Range(subMin + diff, subMax + 1);
+                        int partner = anchor - diff;
+
+                        if (Random.value < 0.5f) { leftVal = anchor; rightVal = partner; }
+                        else { leftVal = partner; rightVal = anchor; }
+                        enforced = true;
+                    }
+                }
             }
 
-            // Randomly assign which side is lesser/greater
-            if (Random.value < 0.5f)
+            if (!enforced)
             {
-                leftVal = lesser;
-                rightVal = greater;
-            }
-            else
-            {
-                leftVal = greater;
-                rightVal = lesser;
+                // Fallback: two distinct random subtracts inside the (dynamic) window
+                int lesser = Random.Range(subMin, subMax + 1);
+                int greater;
+                if (lesser < subMax) greater = Random.Range(lesser + 1, subMax + 1);
+                else { lesser = Mathf.Max(1, subMax - 1); greater = subMax; }
+
+                if (Random.value < 0.5f) { leftVal = lesser; rightVal = greater; }
+                else { leftVal = greater; rightVal = lesser; }
             }
         }
         else
@@ -194,9 +230,19 @@ public class LevelGenerator : MonoBehaviour
 
         if (pairIndex == gateCount - 1 && bossPrefab != null)
         {
-            // Final pair: spawn boss then a finish trigger ahead
-            Instantiate(bossPrefab, new Vector3(0f, enemyFootOffset, spawnZ), Quaternion.identity);
+            // Final pair: spawn N bosses, centered on X
+            int count = Mathf.Max(1, finalBossCount);
+            float totalWidth = (count - 1) * bossSpacingX;
+            float startX = -totalWidth * 0.5f;
 
+            for (int i = 0; i < count; i++)
+            {
+                float x = startX + i * bossSpacingX;
+                Vector3 pos = new Vector3(x, enemyFootOffset, spawnZ);
+                Instantiate(bossPrefab, pos, Quaternion.identity);
+            }
+
+            // Finish trigger ahead of bosses
             if (finishGatePrefab != null)
             {
                 float finishZ = spawnZ + finishOffsetZ;
@@ -217,8 +263,8 @@ public class LevelGenerator : MonoBehaviour
 
     // ----------------------------------------------------------------------
     // Pair picking logic:
-    // - If troopCount > 50: ONLY allow (−,÷), (−,−), (−,×), regardless of pairIndex.
-    // - Else: use standard set; for first two pairs, exclude only (−,÷) and (×,÷) and (−,x).
+    // - If troopCount > 50: NO Multiply gates at all. Only allow (−,÷) and (−,−).
+    // - Else: use standard set; for first two pairs, exclude only (−,÷), (×,÷), (−,×).
     // ----------------------------------------------------------------------
     (GateType a, GateType b) PickPairTypes(int pairIndex, int troopCount)
     {
@@ -228,7 +274,6 @@ public class LevelGenerator : MonoBehaviour
             {
                 (GateType.Subtract, GateType.Divide),    // (−,÷)
                 (GateType.Subtract, GateType.Subtract),  // (−,−)
-                (GateType.Subtract, GateType.Multiply),  // (−,×)
             };
             int idxH = Random.Range(0, highAllowed.Count);
             return highAllowed[idxH];
@@ -246,9 +291,9 @@ public class LevelGenerator : MonoBehaviour
 
         if (pairIndex < 2)
         {
-            allowed.Remove((GateType.Subtract, GateType.Divide)); // (−,÷)
-            allowed.Remove((GateType.Multiply, GateType.Divide)); // (×,÷)
-            allowed.Remove((GateType.Subtract, GateType.Multiply)); // (−,x)
+            allowed.Remove((GateType.Subtract, GateType.Divide));   // (−,÷)
+            allowed.Remove((GateType.Multiply, GateType.Divide));   // (×,÷)
+            allowed.Remove((GateType.Subtract, GateType.Multiply)); // (−,×)
         }
 
         int idx = Random.Range(0, allowed.Count);

@@ -2159,7 +2159,7 @@ MonoBehaviour:
   bossPrefab: {fileID: 2820884910277170662, guid: 358f94c01ce12fa429a4a5e528e785b6, type: 3}
   finishGatePrefab: {fileID: 2043698147948200996, guid: 3977b1a8e8bdc5343af0510139c2a5b4, type: 3}
   finishOffsetZ: 20
-  gateCount: 2
+  gateCount: 5
   spacingZ: 50
   gateOffsetZ: 20
   centerGap: 1
@@ -2174,7 +2174,13 @@ MonoBehaviour:
   lowTroopMin: 1
   highTroopMax: 100
   subtractAtLow: {x: 1, y: 3}
-  subtractAtHigh: {x: 350, y: 450}
+  subtractAtHigh: {x: 350, y: 400}
+  finalBossCount: 4
+  bossSpacingX: 4
+  useFixedSubtractDifference: 1
+  subtractPairDifference: 70
+  ignoreDynamicRangeForFixedDiff: 1
+  fixedSubtractAnchorRange: {x: 350, y: 400}
 --- !u!1 &1394072957
 GameObject:
   m_ObjectHideFlags: 0
