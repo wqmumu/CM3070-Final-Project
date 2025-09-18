@@ -283,11 +283,9 @@ public abstract class EnemyBase : MonoBehaviour
         if (isDead) return;
         isDead = true;
 
+        // Make death audible and present; allow 2D reinforce (AudioManager will gate it if too crowded)
         if (AudioManager.I != null)
-        {
-            // Use the important path so death can’t be masked by hit spam
             AudioManager.I.PlayAtImportant(DieSfx, transform.position, reinforce2D: true);
-        }
 
         if (anim)
         {

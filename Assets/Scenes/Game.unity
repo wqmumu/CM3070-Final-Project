@@ -2178,7 +2178,7 @@ MonoBehaviour:
   finalBossCount: 4
   bossSpacingX: 4
   useFixedSubtractDifference: 1
-  subtractPairDifference: 70
+  subtractPairDifference: 50
   ignoreDynamicRangeForFixedDiff: 1
   fixedSubtractAnchorRange: {x: 350, y: 400}
 --- !u!1 &1394072957
@@ -2324,7 +2324,6 @@ GameObject:
   m_Component:
   - component: {fileID: 1397938499}
   - component: {fileID: 1397938500}
-  - component: {fileID: 1397938501}
   m_Layer: 0
   m_Name: AudioManager
   m_TagString: Untagged
@@ -2394,7 +2393,7 @@ MonoBehaviour:
     clips:
     - {fileID: 8300000, guid: af39dc610b3080943a95f1fdad44ba50, type: 3}
     - {fileID: 8300000, guid: 8cc6cb7cc12e723479460fe8574437f2, type: 3}
-    volume: 0.6
+    volume: 0.706
     randomPitch: 0.05
     is3D: 0
     minInterval: 0.03
@@ -2488,31 +2487,9 @@ MonoBehaviour:
   poolSize: 24
   maxSimultaneousSfx: 32
   backgroundMusic: {fileID: 8300000, guid: f4eefd63efb8c004c880981bd4c098da, type: 3}
-  backgroundMusicVolume: 0.5
+  backgroundMusicVolume: 1
   menuSceneName: MainMenu
   musicSource: {fileID: 0}
---- !u!114 &1397938501
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1397938498}
-  m_Enabled: 0
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 891a2b6f4927d4648943d6d5d1fab134, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  clickSound: {fileID: 8300000, guid: 7480c73e7df53f948adef4aa2cfa63ec, type: 3}
-  volume: 1
-  sfxGroup: {fileID: -9040695135849550167, guid: 2f5734f3f581b764fa44126f940ee9b8, type: 2}
-  bypassMixer: 1
-  scanRoot: {fileID: 2180784310719578157}
-  persistAcrossScenes: 0
-  rescanOnSceneLoad: 1
-  delayedRescanSeconds: 0.15
-  extraPass: 1
-  extraPassDelay: 0.35
 --- !u!1 &1470538228
 GameObject:
   m_ObjectHideFlags: 0
