@@ -5,12 +5,32 @@ using UnityEngine.Events;
 public class FinishGate : MonoBehaviour
 {
     [Tooltip("Called once when the player reaches the finish.")]
-    public UnityEvent onVictory;
+    public UnityEvent onVictory = new UnityEvent();   // ensure it's never null
 
     [Tooltip("If true, this finish trigger will only fire once.")]
     public bool oneShot = true;
 
     private bool triggered;
+
+    // Auto-bind to the UI controller in the scene (works for prefab instances)
+    private void OnEnable()
+    {
+        var ui = FindFirstObjectByType<SettingsUIController>();
+        if (ui != null)
+        {
+            // public method on your controller
+            onVictory.AddListener(ui.ShowLevelComplete);
+        }
+    }
+
+    private void OnDisable()
+    {
+        var ui = FindFirstObjectByType<SettingsUIController>();
+        if (ui != null)
+        {
+            onVictory.RemoveListener(ui.ShowLevelComplete);
+        }
+    }
 
     private void OnTriggerEnter(Collider other)
     {
@@ -23,7 +43,7 @@ public class FinishGate : MonoBehaviour
             AudioManager.I.Play2D(SfxId.Victory);
 
         // freeze everything
-        Time.timeScale = 0f;   // <-- stops Update(), physics, animations based on deltaTime
+        Time.timeScale = 0f;
 
         // also stop troops
         var tm = FindFirstObjectByType<TroopManager>();
@@ -33,7 +53,7 @@ public class FinishGate : MonoBehaviour
         var enemies = FindObjectsByType<EnemyBase>(FindObjectsSortMode.None);
         foreach (var e in enemies) if (e) e.enabled = false;
 
-        // trigger any custom victory events
+        // fire any listeners (now includes the SettingsUIController)
         onVictory?.Invoke();
 
         if (oneShot)

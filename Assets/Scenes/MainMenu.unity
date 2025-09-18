@@ -902,6 +902,60 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 320087304}
   m_CullTransparentMesh: 1
+--- !u!1 &322164829
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 322164831}
+  - component: {fileID: 322164830}
+  m_Layer: 0
+  m_Name: ButtonAudio
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!114 &322164830
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 322164829}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 891a2b6f4927d4648943d6d5d1fab134, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  clickSound: {fileID: 8300000, guid: 7480c73e7df53f948adef4aa2cfa63ec, type: 3}
+  volume: 0.4
+  sfxGroup: {fileID: 0}
+  bypassMixer: 1
+  scanRoot: {fileID: 0}
+  persistAcrossScenes: 1
+  rescanOnSceneLoad: 1
+  delayedRescanSeconds: 0.15
+  extraPass: 1
+  extraPassDelay: 0.35
+--- !u!4 &322164831
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 322164829}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 494.53485, y: 482.31168, z: -334.55963}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &336099170
 GameObject:
   m_ObjectHideFlags: 0
@@ -1767,7 +1821,6 @@ GameObject:
   m_Component:
   - component: {fileID: 1552316154}
   - component: {fileID: 1552316153}
-  - component: {fileID: 1552316155}
   - component: {fileID: 1552316156}
   m_Layer: 0
   m_Name: MenuAudio
@@ -1812,23 +1865,6 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &1552316155
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1552316152}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 891a2b6f4927d4648943d6d5d1fab134, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  clickSound: {fileID: 8300000, guid: 7480c73e7df53f948adef4aa2cfa63ec, type: 3}
-  volume: 1
-  sfxGroup: {fileID: -9040695135849550167, guid: 2f5734f3f581b764fa44126f940ee9b8, type: 2}
-  scanRoot: {fileID: 1552749705}
-  rescanOnSceneLoad: 1
 --- !u!114 &1552316156
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -5088,5 +5124,6 @@ SceneRoots:
   - {fileID: 1768542922}
   - {fileID: 518188130}
   - {fileID: 1552316154}
+  - {fileID: 322164831}
   - {fileID: 1552749705}
   - {fileID: 234844651}

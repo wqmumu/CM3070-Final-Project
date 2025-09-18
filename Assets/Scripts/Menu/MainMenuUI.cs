@@ -117,7 +117,7 @@ public class MainMenuUI : MonoBehaviour
         if (Time.timeScale != 1f) Time.timeScale = 1f;
 
         // NEW: fade out menu music if present
-        var menuMusic = FindObjectOfType<MenuMusic>(true);
+        var menuMusic = FindFirstObjectByType<MenuMusic>(FindObjectsInactive.Include);
         if (menuMusic) menuMusic.FadeOutAndStop(0.5f);
 
         AsyncOperation op = UnityEngine.SceneManagement.SceneManager
