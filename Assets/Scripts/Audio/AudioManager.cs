@@ -297,27 +297,45 @@ public class AudioManager : MonoBehaviour
         if (Time.timeScale == 0f && id == SfxId.TroopMove) return;
         if (!dict.TryGetValue(id, out var bank) || bank.clips == null || bank.clips.Length == 0) return;
 
+        // Respect per-bank spam guard (same as PlayAt / Play2D)
+        float now = Time.realtimeSinceStartup;
+        if (bank.minInterval > 0f && lastPlayTime.TryGetValue(id, out float last) && (now - last) < bank.minInterval) return;
+        lastPlayTime[id] = now;
+
         var clip = bank.clips[UnityEngine.Random.Range(0, bank.clips.Length)];
         if (!clip) return;
 
+        // ---------- Density control tuned for audibility ----------
+        // Keep death sounds present, but gently duck when the scene is VERY busy.
+        int voices = Mathf.Max(0, currentActiveVoices);
+
+        // Start taper only after 10 active voices. Minimum 60% of bank volume.
+        float crowd = Mathf.Max(0, voices - 10);
+        float densityScale = Mathf.Clamp01(1f - crowd * 0.06f);          // -6% per extra voice after 10
+        float volFloor = 0.60f;                                          // never drop below 60%
+        float baseVol = Mathf.Clamp01(Mathf.Lerp(volFloor, 1f, densityScale) * bank.volume);
+
+        // 3D main hit
         var src = GrabSource(true, pos, bank);
         if (src != null)
         {
             src.clip = clip;
-            src.volume = Mathf.Min(1f, bank.volume * 1.2f);
+            src.volume = baseVol * 1.05f;                                // present, but controlled
             src.pitch = 1f + UnityEngine.Random.Range(-bank.randomPitch, bank.randomPitch);
-            src.priority = Mathf.Min(bank.priority, 64);
+            src.priority = Mathf.Min(bank.priority, 64);                  // lift priority (lower is higher priority)
             src.Play();
 
             currentActiveVoices++;
             Recycle(src, clip.length / Mathf.Abs(src.pitch));
         }
 
-        if (reinforce2D && _oneShot2D != null)
+        // 2D reinforce only when the mix isn’t already a zoo
+        if (reinforce2D && _oneShot2D != null && voices < 12)
         {
             _oneShot2D.pitch = 1f;
-            _oneShot2D.volume = Mathf.Clamp01(bank.volume * 0.8f);
+            _oneShot2D.volume = Mathf.Clamp01(baseVol * 0.85f);
             _oneShot2D.PlayOneShot(clip);
         }
     }
+
 }
