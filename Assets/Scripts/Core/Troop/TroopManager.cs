@@ -2,6 +2,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.Events;
 
 public class TroopManager : MonoBehaviour
 {
@@ -29,6 +30,9 @@ public class TroopManager : MonoBehaviour
     [SerializeField] private LayerMask enemyMask = 0;
 
     public static bool CombatEngaged { get; private set; }
+
+    [Header("Signals")]
+    public UnityEvent onDefeat = new UnityEvent(); // <— NEW
 
     private bool defeatFired = false;
 
@@ -197,12 +201,14 @@ public class TroopManager : MonoBehaviour
             defeatFired = true;
             if (AudioManager.I != null)
                 AudioManager.I.Play2D(SfxId.Defeat);
+
+            // NEW: broadcast defeat so UI can show Game Over
+            onDefeat.Invoke();
         }
 
         var unit = troop.GetComponent<TroopUnit>();
         if (unit != null)
         {
-            // still let it play death anim, but defeat already triggered
             unit.PlayDeath(() =>
             {
                 troop.SetActive(false);
@@ -227,6 +233,8 @@ public class TroopManager : MonoBehaviour
 
         if (AudioManager.I != null)
             AudioManager.I.Play2D(SfxId.Defeat);
+
+        onDefeat.Invoke(); // NEW
     }
 
     private void SetLeader(Transform newLeader)

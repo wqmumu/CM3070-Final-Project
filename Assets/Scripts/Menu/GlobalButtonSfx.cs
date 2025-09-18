@@ -10,14 +10,17 @@ public class GlobalButtonSfx : MonoBehaviour
     [Header("SFX")]
     public AudioClip clickSound;
     [Range(0f, 1f)] public float volume = 1f;
+    [Tooltip("Optional mixer group for UI clicks.")]
     public AudioMixerGroup sfxGroup;
+    [Tooltip("If true, don't route to a mixer even if one is assigned.")]
+    public bool bypassMixer = true;
 
     [Header("Auto-scan")]
     [Tooltip("Leave null to scan the whole scene. Set to a Canvas/parent to limit the scan.")]
     public Transform scanRoot = null;
 
     [Tooltip("Keep this object alive across scenes. If you enable this, only place ONE in your project.")]
-    public bool persistAcrossScenes = false;
+    public bool persistAcrossScenes = true;
 
     [Tooltip("If persistent, rescan after each scene load.")]
     public bool rescanOnSceneLoad = true;
@@ -34,19 +37,23 @@ public class GlobalButtonSfx : MonoBehaviour
     private AudioSource src;
     private readonly HashSet<Button> hooked = new HashSet<Button>();
 
+    // ----------------------------------------------------------------
+
     private void Awake()
     {
         if (persistAcrossScenes)
         {
-            if (_instance != null && _instance != this) { Destroy(gameObject); return; }
+            if (_instance != null && _instance != this)
+            {
+                // another instance already exists; this one self-destructs
+                Destroy(gameObject);
+                return;
+            }
             _instance = this;
             DontDestroyOnLoad(gameObject);
         }
 
-        src = gameObject.AddComponent<AudioSource>();
-        src.playOnAwake = false;
-        src.ignoreListenerPause = true; // play in pause menus
-        if (sfxGroup) src.outputAudioMixerGroup = sfxGroup;
+        EnsureAudioSourceAlive();
     }
 
     private void OnEnable()
@@ -63,12 +70,21 @@ public class GlobalButtonSfx : MonoBehaviour
         if (persistAcrossScenes && rescanOnSceneLoad)
             SceneManager.sceneLoaded -= OnSceneLoaded;
 
-        hooked.Clear();
+        UnhookAllButtons();
+    }
+
+    private void OnDestroy()
+    {
+        if (_instance == this) _instance = null;
+        if (persistAcrossScenes && rescanOnSceneLoad)
+            SceneManager.sceneLoaded -= OnSceneLoaded;
+
+        UnhookAllButtons();
     }
 
     private void OnSceneLoaded(Scene scene, LoadSceneMode mode)
     {
-        hooked.Clear();
+        UnhookAllButtons();
         StartCoroutine(RescanSequence(delayedRescanSeconds));
     }
 
@@ -86,16 +102,40 @@ public class GlobalButtonSfx : MonoBehaviour
 
     private void HookAllButtons()
     {
-        Button[] candidates = scanRoot
-            ? scanRoot.GetComponentsInChildren<Button>(true)
-            : FindObjectsOfType<Button>(true);
+        Button[] candidates;
 
-        foreach (var b in candidates)
+        if (scanRoot)
         {
+            candidates = scanRoot.GetComponentsInChildren<Button>(true);
+        }
+        else
+        {
+            // Unity 6-safe search that includes inactive objects
+#if UNITY_2023_1_OR_NEWER
+            candidates = FindObjectsByType<Button>(FindObjectsInactive.Include, FindObjectsSortMode.None);
+#else
+            candidates = FindObjectsOfType<Button>(true);
+#endif
+        }
+
+        for (int i = 0; i < candidates.Length; i++)
+        {
+            var b = candidates[i];
             if (b == null || hooked.Contains(b)) continue;
             b.onClick.AddListener(PlayClick);
             hooked.Add(b);
         }
+    }
+
+    private void UnhookAllButtons()
+    {
+        if (hooked.Count == 0) return;
+
+        foreach (var b in hooked)
+        {
+            if (b != null) b.onClick.RemoveListener(PlayClick);
+        }
+        hooked.Clear();
     }
 
     // Allow runtime panels to register their buttons explicitly if needed.
@@ -108,7 +148,37 @@ public class GlobalButtonSfx : MonoBehaviour
 
     private void PlayClick()
     {
-        if (clickSound)
-            src.PlayOneShot(clickSound, volume);
+        if (!clickSound) return;
+
+        // If another script killed/disabled our AudioSource between scenes, restore it.
+        EnsureAudioSourceAlive();
+
+        // If the GameObject itself is disabled, we can't play audio.
+        if (!isActiveAndEnabled || src == null) return;
+
+        src.PlayOneShot(clickSound, Mathf.Clamp01(volume));
+    }
+
+    private void EnsureAudioSourceAlive()
+    {
+        // Recreate or re-enable the AudioSource if needed
+        if (src == null)
+        {
+            src = GetComponent<AudioSource>();
+            if (src == null) src = gameObject.AddComponent<AudioSource>();
+        }
+
+        if (!src.enabled) src.enabled = true;
+
+        // (Re)configure every time in case something changed
+        src.playOnAwake = false;
+        src.ignoreListenerPause = true; // still plays in pause menus
+        src.loop = false;
+        src.clip = null;
+
+        if (!bypassMixer && sfxGroup != null)
+            src.outputAudioMixerGroup = sfxGroup;
+        else
+            src.outputAudioMixerGroup = null;
     }
 }
