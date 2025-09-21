@@ -53,7 +53,7 @@ public class FinishGate : MonoBehaviour
         var enemies = FindObjectsByType<EnemyBase>(FindObjectsSortMode.None);
         foreach (var e in enemies) if (e) e.enabled = false;
 
-        // fire any listeners (now includes the SettingsUIController)
+        // fire any listeners
         onVictory?.Invoke();
 
         if (oneShot)

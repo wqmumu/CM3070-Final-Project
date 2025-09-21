@@ -2,8 +2,8 @@ using UnityEngine;
 
 public class ControlHints : MonoBehaviour
 {
-    [SerializeField] private GameObject hintsPanel;   // assign your ControlHints root
-    [SerializeField] private SettingsUIController ui; // drag SettingsUIController here
+    [SerializeField] private GameObject hintsPanel;
+    [SerializeField] private SettingsUIController ui;
 
     public void OnGotIt()
     {
@@ -15,7 +15,7 @@ public class ControlHints : MonoBehaviour
             return;
         }
 
-        // Fallback if ui isn¡¯t wired: hide hints and resume gameplay.
+        // hide hints and resume gameplay.
         if (hintsPanel) hintsPanel.SetActive(false);
         Time.timeScale = 1f;
         AudioListener.pause = false;

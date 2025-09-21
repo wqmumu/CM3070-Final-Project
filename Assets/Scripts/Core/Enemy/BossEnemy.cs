@@ -20,7 +20,7 @@ public class BossEnemy : EnemyBase
 
     [Header("Boss Audio")]
     [SerializeField] private SfxId attackSfx = SfxId.BossAttack;
-    [SerializeField] private SfxId hitSfx = SfxId.BulletHitBoss;   // short impact
+    [SerializeField] private SfxId hitSfx = SfxId.BulletHitBoss;
     [SerializeField] private SfxId dieSfx = SfxId.BossDie;
 
     // ---- overrides ----

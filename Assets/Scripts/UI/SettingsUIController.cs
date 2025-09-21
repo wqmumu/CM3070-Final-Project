@@ -23,7 +23,7 @@ public class SettingsUIController : MonoBehaviour
 
     void Awake()
     {
-        controlHintsOpenedFromSettings = false;    // onboarding
+        controlHintsOpenedFromSettings = false;
         ShowOnly(controlHintsOverlay);
         ForcePausedState();
 

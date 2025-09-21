@@ -221,7 +221,7 @@ public class LevelGenerator : MonoBehaviour
         }
 
         // ----- Enemy spawns scale with troop count AND gates passed -----
-        int gatesPassed = pairIndex; // since we spawn pairIndex after passing previous one
+        int gatesPassed = pairIndex;
         int fromTroops = Mathf.FloorToInt((troopCountAtSpawn / 10f) * Mathf.Max(0f, zombiesPerTenTroops));
         int fromGates = Mathf.Max(0, gatesPassed * zombiesPerGatePassed);
         int zombieCount = Mathf.Clamp(Mathf.Max(1, fromTroops + fromGates), 1, maxZombiesPerPair);
@@ -261,11 +261,7 @@ public class LevelGenerator : MonoBehaviour
         }
     }
 
-    // ----------------------------------------------------------------------
-    // Pair picking logic:
-    // - If troopCount > 50: NO Multiply gates at all. Only allow (−,÷) and (−,−).
-    // - Else: use standard set; for first two pairs, exclude only (−,÷), (×,÷), (−,×).
-    // ----------------------------------------------------------------------
+    // Pair picking logic
     (GateType a, GateType b) PickPairTypes(int pairIndex, int troopCount)
     {
         if (troopCount > 50)
@@ -300,7 +296,7 @@ public class LevelGenerator : MonoBehaviour
         return allowed[idx];
     }
 
-    // Map troop count to subtract magnitude (smooth):
+    // Map troop count to subtract magnitude
     // lowTroopMin → subtractAtLow | highTroopMax → subtractAtHigh
     (int, int) DynamicSubtractRange(int troopCount)
     {

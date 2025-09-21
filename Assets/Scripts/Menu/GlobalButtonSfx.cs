@@ -37,7 +37,6 @@ public class GlobalButtonSfx : MonoBehaviour
     private AudioSource src;
     private readonly HashSet<Button> hooked = new HashSet<Button>();
 
-    // ----------------------------------------------------------------
 
     private void Awake()
     {
@@ -61,7 +60,7 @@ public class GlobalButtonSfx : MonoBehaviour
         if (persistAcrossScenes && rescanOnSceneLoad)
             SceneManager.sceneLoaded += OnSceneLoaded;
 
-        // hook buttons in the current scene too
+        // hook buttons in the current scene
         StartCoroutine(RescanSequence(0f));
     }
 
@@ -110,7 +109,6 @@ public class GlobalButtonSfx : MonoBehaviour
         }
         else
         {
-            // Unity 6-safe search that includes inactive objects
 #if UNITY_2023_1_OR_NEWER
             candidates = FindObjectsByType<Button>(FindObjectsInactive.Include, FindObjectsSortMode.None);
 #else
@@ -153,7 +151,7 @@ public class GlobalButtonSfx : MonoBehaviour
         // If another script killed/disabled our AudioSource between scenes, restore it.
         EnsureAudioSourceAlive();
 
-        // If the GameObject itself is disabled, we can't play audio.
+        // If the GameObject itself is disabled, can't play audio.
         if (!isActiveAndEnabled || src == null) return;
 
         src.PlayOneShot(clickSound, Mathf.Clamp01(volume));

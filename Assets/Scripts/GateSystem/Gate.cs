@@ -19,11 +19,11 @@ public class Gate : MonoBehaviour
     public GameObject gateHitEffect;
     public Material positiveMaterial; // Blue for Add/Multiply
     public Material negativeMaterial; // Red for Subtract/Divide
-    public Material disabledMaterial; // Optional: to gray-out when disabled
+    public Material disabledMaterial; // to gray-out when disabled
 
     [Header("References")]
     public MeshRenderer bannerRenderer; // assign Banner MeshRenderer in Inspector
-    public Transform popTarget;         // usually Banner transform (optional; auto-filled)
+    public Transform popTarget;
 
     [Header("Pop Animation")]
     [SerializeField] float popScale = 1.15f;
@@ -65,7 +65,7 @@ public class Gate : MonoBehaviour
     public void Configure(GateType newType, int newValue)
     {
         type = newType;
-        value = Mathf.Max(1, newValue); // keep it sane
+        value = Mathf.Max(1, newValue);
         UpdateLabel();
     }
 
@@ -93,9 +93,6 @@ public class Gate : MonoBehaviour
     }
 
     // Bullet impact rules:
-    // - Add: value++
-    // - Subtract: count up towards positive, skipping 0 (−3→−2→−1→+1→+2…)
-    // - Multiply / Divide: NO change
     public void OnBulletHit(Vector3 hitPosition)
     {
         if (triggered || disabledGate) return;

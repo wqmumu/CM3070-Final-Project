@@ -20,7 +20,7 @@ public class NormalEnemy : EnemyBase
 
     [Header("Zombie Audio")]
     [SerializeField] private SfxId attackSfx = SfxId.ZombieAttack;
-    [SerializeField] private SfxId hitSfx = SfxId.BulletHitZombie;  // short impact
+    [SerializeField] private SfxId hitSfx = SfxId.BulletHitZombie;
     [SerializeField] private SfxId dieSfx = SfxId.ZombieDie;
 
     // ---- overrides ----

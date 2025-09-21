@@ -5,7 +5,7 @@ using TMPro;
 public class EnemyHealthUI : MonoBehaviour
 {
     public Slider healthSlider;
-    public Canvas hpCanvas; // <-- add this
+    public Canvas hpCanvas;
     private EnemyBase enemy;
     private Camera cam;
 

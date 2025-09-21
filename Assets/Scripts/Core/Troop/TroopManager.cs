@@ -19,7 +19,7 @@ public class TroopManager : MonoBehaviour
     // Enemies listen for leader changes
     public static event Action<Transform> OnLeaderChanged;
 
-    // Troops (e.g., movers/shooters) may listen to pause/resume during combat
+    // Troops (e.g., movers/shooters) listen to pause/resume during combat
     public static event Action<bool> OnCombatStateChanged;
 
     private AudioSource moveLoop;
@@ -32,7 +32,7 @@ public class TroopManager : MonoBehaviour
     public static bool CombatEngaged { get; private set; }
 
     [Header("Signals")]
-    public UnityEvent onDefeat = new UnityEvent(); // <— NEW
+    public UnityEvent onDefeat = new UnityEvent();
 
     private bool defeatFired = false;
 
@@ -47,7 +47,7 @@ public class TroopManager : MonoBehaviour
         int extra = Mathf.Clamp(startingTroops - 1, 0, maxTroops);
         SpawnTroops(extra);
 
-        // Marching loop (shared)
+        // Marching loop
         var bank = AudioManager.I.GetBank(SfxId.TroopMove);
         if (bank != null && bank.clips.Length > 0)
         {
@@ -202,7 +202,6 @@ public class TroopManager : MonoBehaviour
             if (AudioManager.I != null)
                 AudioManager.I.Play2D(SfxId.Defeat);
 
-            // NEW: broadcast defeat so UI can show Game Over
             onDefeat.Invoke();
         }
 
@@ -234,7 +233,7 @@ public class TroopManager : MonoBehaviour
         if (AudioManager.I != null)
             AudioManager.I.Play2D(SfxId.Defeat);
 
-        onDefeat.Invoke(); // NEW
+        onDefeat.Invoke();
     }
 
     private void SetLeader(Transform newLeader)

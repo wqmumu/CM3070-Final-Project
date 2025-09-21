@@ -1843,7 +1843,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   menuClip: {fileID: 8300000, guid: 7ff7cbb3230dbbc4aa7acb9fb8f54abd, type: 3}
   loop: 1
-  volume: 0.1
+  volume: 0.27
   musicGroup: {fileID: 1299972548307823397, guid: 2f5734f3f581b764fa44126f940ee9b8, type: 2}
   persistAcrossScenes: 0
   menuSceneName: MainMenu

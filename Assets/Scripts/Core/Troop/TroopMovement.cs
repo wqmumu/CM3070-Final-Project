@@ -1,5 +1,5 @@
 using UnityEngine;
-using UnityEngine.EventSystems; // needed for UI check
+using UnityEngine.EventSystems; 
 
 public class TroopMovement : MonoBehaviour
 {
@@ -9,7 +9,7 @@ public class TroopMovement : MonoBehaviour
     private Camera mainCamera;
     private bool isLeader = false;
     private bool _paused = false;
-    private TroopUnit unit;  // cache
+    private TroopUnit unit;
 
     public void SetAsLeader(bool status) { isLeader = status; }
     public void SetMovementPaused(bool paused) { _paused = paused; }

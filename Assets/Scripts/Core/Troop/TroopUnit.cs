@@ -63,7 +63,7 @@ public class TroopUnit : MonoBehaviour
             agent.enabled = false;
         }
 
-        // 🔒 stop shooter
+        // stop shooter
         var shooter = GetComponent<TroopShooter>();
         if (shooter)
         {

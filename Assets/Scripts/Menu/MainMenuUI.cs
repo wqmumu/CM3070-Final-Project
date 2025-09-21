@@ -8,13 +8,13 @@ public class MainMenuUI : MonoBehaviour
 {
     [Header("Panels")]
     [SerializeField] private GameObject rootMenuPanel;
-    [SerializeField] private GameObject volumePanel;       // was: settingsPanel
-    [SerializeField] private GameObject controlHintsPanel; // was: controlsPanel
+    [SerializeField] private GameObject volumePanel;       
+    [SerializeField] private GameObject controlHintsPanel; 
     [SerializeField] private GameObject loadingPanel;
 
     [Header("Root Menu Buttons")]
     [SerializeField] private Button playButton;
-    [SerializeField] private Button volumeButton;   // was: settingsButton
+    [SerializeField] private Button volumeButton; 
     [SerializeField] private Button controlsButton;
     [SerializeField] private Button quitButton;
 
@@ -26,9 +26,9 @@ public class MainMenuUI : MonoBehaviour
     [SerializeField] private string gameSceneName = "Game";
 
     [Header("Selection (optional)")]
-    [SerializeField] private Selectable defaultRootSelection;     // e.g., PlayButton
-    [SerializeField] private Selectable defaultVolumeSelection;   // e.g., first slider in VolumePanel
-    [SerializeField] private Selectable defaultControlsSelection; // e.g., Back button in ControlHints
+    [SerializeField] private Selectable defaultRootSelection;   
+    [SerializeField] private Selectable defaultVolumeSelection; 
+    [SerializeField] private Selectable defaultControlsSelection; 
 
     private void Awake()
     {
@@ -116,7 +116,7 @@ public class MainMenuUI : MonoBehaviour
 
         if (Time.timeScale != 1f) Time.timeScale = 1f;
 
-        // NEW: fade out menu music if present
+        // fade out menu music if present
         var menuMusic = FindFirstObjectByType<MenuMusic>(FindObjectsInactive.Include);
         if (menuMusic) menuMusic.FadeOutAndStop(0.5f);
 

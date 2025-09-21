@@ -129,7 +129,7 @@ public class AudioManager : MonoBehaviour
 
     void Start()
     {
-        // If we are already in a GAME scene (not the menu), start BGM once.
+        // in a GAME scene (not the menu), start BGM once.
         if (!IsMenuScene(SceneManager.GetActiveScene().name) && backgroundMusic)
             PlayMusic(backgroundMusic, 0.5f);
     }
@@ -139,7 +139,7 @@ public class AudioManager : MonoBehaviour
     {
         if (IsMenuScene(s.name))
         {
-            // Don’t play game BGM in menu (MenuMusic handles that)
+            // Don’t play game BGM in menu
             if (musicSource.isPlaying) musicSource.Stop();
         }
         else
@@ -311,8 +311,8 @@ public class AudioManager : MonoBehaviour
 
         // Start taper only after 10 active voices. Minimum 60% of bank volume.
         float crowd = Mathf.Max(0, voices - 10);
-        float densityScale = Mathf.Clamp01(1f - crowd * 0.06f);          // -6% per extra voice after 10
-        float volFloor = 0.60f;                                          // never drop below 60%
+        float densityScale = Mathf.Clamp01(1f - crowd * 0.06f); 
+        float volFloor = 0.60f;   
         float baseVol = Mathf.Clamp01(Mathf.Lerp(volFloor, 1f, densityScale) * bank.volume);
 
         // 3D main hit
@@ -320,9 +320,9 @@ public class AudioManager : MonoBehaviour
         if (src != null)
         {
             src.clip = clip;
-            src.volume = baseVol * 1.05f;                                // present, but controlled
+            src.volume = baseVol * 1.05f;
             src.pitch = 1f + UnityEngine.Random.Range(-bank.randomPitch, bank.randomPitch);
-            src.priority = Mathf.Min(bank.priority, 64);                  // lift priority (lower is higher priority)
+            src.priority = Mathf.Min(bank.priority, 64);
             src.Play();
 
             currentActiveVoices++;

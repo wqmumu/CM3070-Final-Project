@@ -64,6 +64,6 @@ public class TroopShooter : MonoBehaviour
         canShoot = false;
         StopAllCoroutines();
         CancelInvoke();
-        enabled = false; // belt & suspenders
+        enabled = false;
     }
 }

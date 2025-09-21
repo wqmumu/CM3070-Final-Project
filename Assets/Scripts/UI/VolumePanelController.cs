@@ -38,7 +38,7 @@ public class VolumePanelController : MonoBehaviour
     private void OnEnable()
     {
         LoadPrefsToUI();
-        ApplyAllToMixer();      // make sure mixer reflects saved values immediately
+        ApplyAllToMixer(); 
         UpdateAllLabels();
 
         Cursor.visible = true;

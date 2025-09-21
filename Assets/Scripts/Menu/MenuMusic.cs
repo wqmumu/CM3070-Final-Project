@@ -75,7 +75,6 @@ public class MenuMusic : MonoBehaviour
         }
     }
 
-    /// <summary>Call this to fade out and stop the music (optionally destroying the GO).</summary>
     public void FadeOutAndStop(float seconds)
     {
         if (fadeCo != null) StopCoroutine(fadeCo);
